@@ -1,0 +1,1 @@
+Raad::Logger.info("info from config in env=#{Raad::env}")
