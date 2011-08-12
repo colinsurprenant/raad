@@ -2,6 +2,7 @@
 # Author: Colin Surprenant (colin@needium.com, colin.surprenant@gmail.com)
 
 require 'rubygems'
+require 'lib/raad/version'
 require 'lib/raad/raad'
 require 'lib/raad/configuration'
 require 'lib/raad/runner'

@@ -5,8 +5,6 @@ module Raad
   
   module_function
 
-  VERSION = "0.1.0"
-
   @env = 'development'
 
   # Retrieves the current goliath environment
