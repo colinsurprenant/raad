@@ -13,12 +13,12 @@ Gem::Specification.new do |s|
   s.email       = ["colin.surprenant@gmail.com"]
   s.homepage    = "http://github.com/praized/raad"
   s.summary     = "Ruby as a Daemon"
-  s.description = "Ruby as a Daemon service wrapper"
+  s.description = "Ruby as a Daemon lightweight service wrapper"
  
   s.required_rubygems_version = ">= 1.3.0"
   s.rubyforge_project = "raad"
   
-  s.files             = Dir.glob("{lib/**/*.rb}")
+  s.files             = Dir.glob("{lib/**/*.rb}") + %w(README.md CHANGELOG.md LICENCE.md)
   s.require_path      = 'lib'
 
   s.add_development_dependency "rubyforge"

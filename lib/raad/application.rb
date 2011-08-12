@@ -1,11 +1,11 @@
 # Copyright (c) 2011 Praized Media Inc.
-# Author: Colin Surprenant (colin@needium.com, colin.surprenant@gmail.com)
+# Licensed under the Apache License, Version 2.0
+# Author: Colin Surprenant (colin.surprenant@needium.com, colin.surprenant@gmail.com, @colinsurprenant, http://github.com/colinsurprenant)
 
 module Raad
+
   # The main execution class for Raad. This will execute in the at_exit
   # handler to run the server.
-  #
-  # @private
   class Application
     # Most of this stuff is straight out of sinatra.
 
