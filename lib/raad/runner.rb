@@ -129,9 +129,14 @@ module Raad
     # @return [Nil]
     def run_service
       Logger.setup(@logger_options)
-      Logger.info("starting service in #{Raad.env} mode")
 
       load_config(options[:config])
+      Logger.level = Configuration.log_level if Configuration.log_level
+
+      # set process name
+      $0 = Configuration.daemon_name if Configuration.daemon_name
+
+      Logger.info("starting #{$0} service in #{Raad.env} mode")
 
       at_exit do
         Logger.info(">> Raad service wrapper stopped")
@@ -173,7 +178,12 @@ module Raad
         Logger.warn("no config file=#{file}")
         return
       end
-      service.instance_eval(IO.read(file))
+      self.instance_eval(IO.read(file))
+    end
+
+    # cosmetic alias for config dsl
+    def configuration(&block)
+      Configuration.init(&block)
     end
 
   end

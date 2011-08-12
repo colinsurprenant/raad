@@ -17,8 +17,20 @@ module Raad
       setup_file_logger(@log, log_format, options[:file]) if options[:file]
       setup_stdout_logger(@log, log_format) if options[:stdout]
 
-      @log.level = options[:verbose] ? Log4r::DEBUG : Log4r::INFO
+      @verbose = !!options[:verbose]
+
+      @log.level = @verbose ? Log4r::DEBUG : Log4r::INFO
       @log
+    end
+
+    def level=(l)
+      levels = {
+        :debug => Log4r::DEBUG,
+        :info => Log4r::INFO,
+        :warn => Log4r::WARN,
+        :error => Log4r::ERROR,
+      }
+      @log.level = @verbose ? Log4r::DEBUG : levels[l]
     end
 
     private 

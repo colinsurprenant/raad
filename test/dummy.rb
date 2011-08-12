@@ -16,7 +16,7 @@ class Dummy
     Raad::Logger.info('start info trace')
     Raad::Logger.error('start error trace')
 
-    sleep(60)
+    sleep(10)
   end
 
   def stop

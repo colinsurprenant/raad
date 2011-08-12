@@ -3,6 +3,7 @@
 
 require 'rubygems'
 require 'lib/raad/raad'
+require 'lib/raad/configuration'
 require 'lib/raad/runner'
 require 'lib/raad/application'
 require 'lib/raad/logger'
