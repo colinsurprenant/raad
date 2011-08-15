@@ -8,6 +8,7 @@ require 'lib/raad'
 class Dummy
   
   def initialize
+    @options = {}
   end
 
   def start
@@ -15,6 +16,8 @@ class Dummy
     Raad::Logger.debug('start debug trace')
     Raad::Logger.info('start info trace')
     Raad::Logger.error('start error trace')
+
+    Raad::Logger.info("gaga=#{@options[:gaga]}")
 
     sleep(10)
   end
@@ -32,5 +35,11 @@ class Dummy
     end
   end
 
+  def options_parser(raad_options)
+    raad_options.separator "dummy service options:"
+
+    raad_options.on('-g', '--gaga NAME', "set gaga name") { |val| @options[:gaga] = val }
+    raad_options
+  end
 
 end

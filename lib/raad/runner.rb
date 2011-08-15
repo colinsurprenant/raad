@@ -32,7 +32,7 @@ module Raad
     # @param api [Object | nil] The Goliath::API this runner is for, can be nil
     # @return [Goliath::Runner] An initialized Goliath::Runner
     def initialize(argv, service)
-      options_parser.parse!(argv)
+      options_parser(service).parse!(argv)
 
       @service = service
       
@@ -51,7 +51,7 @@ module Raad
     # Create the options parser
     #
     # @return [OptionParser] Creates the options parser for the runner with the default options
-    def options_parser
+    def options_parser(service)
       @options ||= {
         :daemonize => false,
         :verbose => false,
@@ -62,7 +62,7 @@ module Raad
         opts.banner = "Usage: <service> [options]"
 
         opts.separator ""
-        opts.separator "service options:"
+        opts.separator "raad common options:"
 
         opts.on('-e', '--environment NAME', "Set the execution environment (prod, dev or test) (default: #{Raad.env})") { |val| Raad.env = val }
 
@@ -77,6 +77,7 @@ module Raad
 
         opts.on('-h', '--help', 'Display help message') { show_options(opts) }
       end
+      service.respond_to?(:options_parser) ? service.options_parser(@options_parser) : @options_parser
     end
 
     # Create environment to run the server.
