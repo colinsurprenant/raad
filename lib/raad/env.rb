@@ -5,52 +5,52 @@ module Raad
   
   module_function
 
-  @env = 'development'
+  @env = :development
 
-  # Retrieves the current goliath environment
+  # Retrieves the current environment
   #
-  # @return [String] the current environment
+  # @return [Symbol] the current environment
   def env
     @env
   end
 
   # Sets the current goliath environment
   #
-  # @param [String] env the environment string of [dev|prod|test]
+  # @param [String or Symbol] env the environment [development|production|stage|test]
   def env=(env)
-    case(env)
-    when 'dev', 'development' then @env = 'development'
-    when 'prod', 'production' then @env = 'production'
-    when 'stage', 'staging' then @env = 'stage'
-    when 'test' then @env = 'test'
+    case(env.to_s)
+    when 'dev', 'development' then @env = :development
+    when 'prod', 'production' then @env = :production
+    when 'stage', 'staging' then @env = :stage
+    when 'test' then @env = :test
     end
   end
 
   # Determines if we are in the production environment
   #
   # @return [Boolean] true if current environemnt is production, false otherwise
-  def prod?
-    @env == 'production'
+  def production?
+    @env == :production
   end
 
   # Determines if we are in the development environment
   #
   # @return [Boolean] true if current environemnt is development, false otherwise
-  def dev?
-    @env == 'development'
+  def development?
+    @env == :development
   end
 
   # Determines if we are in the staging environment
   #
-  # @return [Boolean] true if current environemnt is satging, false otherwise
+  # @return [Boolean] true if current environemnt is staging, false otherwise
   def stage?
-    @env == 'stage'
+    @env == :stage
   end
 
   # Determines if we are in the test environment
   #
   # @return [Boolean] true if current environemnt is test, false otherwise
   def test?
-    @env == 'test'
+    @env == :test
   end
 end

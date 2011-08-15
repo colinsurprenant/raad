@@ -3,8 +3,6 @@
 
 require 'optparse'
 
-require 'raad/logger'
-
 module Raad
   # The Goliath::Runner is responsible for parsing any provided options, settting up the
   # rack application, creating a logger, and then executing the Goliath::Server with the loaded information.
@@ -64,7 +62,7 @@ module Raad
         opts.separator ""
         opts.separator "raad common options:"
 
-        opts.on('-e', '--environment NAME', "Set the execution environment (prod, dev or test) (default: #{Raad.env})") { |val| Raad.env = val }
+        opts.on('-e', '--environment NAME', "Set the execution environment (prod, dev or test) (default: #{Raad.env.to_s})") { |val| Raad.env = val }
 
         opts.on('-u', '--user USER', "Run as specified user") {|v| @options[:user] = v }
         opts.on('-l', '--log FILE', "Log to file (default: off)") { |file| @options[:log_file] = file }
@@ -137,7 +135,7 @@ module Raad
       # set process name
       $0 = Configuration.daemon_name if Configuration.daemon_name
 
-      Logger.info("starting #{$0} service in #{Raad.env} mode")
+      Logger.info("starting #{$0} service in #{Raad.env.to_s} mode")
 
       at_exit do
         Logger.info(">> Raad service wrapper stopped")
