@@ -1,12 +1,8 @@
 # Copyright (c) 2011 Praized Media Inc.
 # Author: Colin Surprenant (colin@needium.com, colin.surprenant@gmail.com)
 
-lib = File.expand_path('../lib/', __FILE__)
-$:.unshift lib unless $:.include?(lib)
-# libraad = File.expand_path('../lib/raad/', __FILE__)
-# $:.unshift libraad unless $:.include?(libraad)
  
-require 'raad/version'
+require 'lib/raad/version'
 
 Gem::Specification.new do |s|  
   s.name        = "raad"
@@ -21,7 +17,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = "raad"
   
   s.files             = Dir.glob("{lib/**/*.rb}") + %w(README.md CHANGELOG.md LICENSE.md)
-  s.require_path      = 'lib'
+  s.require_paths     = %w[lib]
 
   s.add_development_dependency "rubyforge"
 
