@@ -3,6 +3,8 @@
 
 lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
+libraad = File.expand_path('../lib/raad/', __FILE__)
+$:.unshift libraad unless $:.include?(libraad)
  
 require 'raad/version'
 
