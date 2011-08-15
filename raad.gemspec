@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = ">= 1.3.0"
   s.rubyforge_project = "raad"
   
-  s.files             = Dir.glob("{lib/**/*.rb}") + %w(README.md CHANGELOG.md LICENCE.md)
+  s.files             = Dir.glob("{lib/**/*.rb}") + %w(README.md CHANGELOG.md LICENSE.md)
   s.require_path      = 'lib'
 
   s.add_development_dependency "rubyforge"
