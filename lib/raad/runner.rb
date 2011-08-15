@@ -3,7 +3,7 @@
 
 require 'optparse'
 
-require 'lib/raad/logger'
+require 'raad/logger'
 
 module Raad
   # The Goliath::Runner is responsible for parsing any provided options, settting up the
