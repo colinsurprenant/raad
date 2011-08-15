@@ -68,6 +68,7 @@ module Raad
   end
 
   at_exit do
+    puts("$!=#{$!.inspect}, $0=#{$0.inspect}, app_file=#{Raad::Application.app_file.inspect}")
     if $!.nil? && $0 == Raad::Application.app_file
       Application.run!
     end
