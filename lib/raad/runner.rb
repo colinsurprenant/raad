@@ -158,8 +158,8 @@ module Raad
 
     def stop_service
       @stop_lock.synchronize do
-        unless stopped 
-          stopped = true
+        unless @stopped 
+          @stopped = true
           Logger.info("stopping service")
           service.stop if service.respond_to?(:stop)
         end
