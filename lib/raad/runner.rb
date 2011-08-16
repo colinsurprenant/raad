@@ -9,6 +9,9 @@ module Raad
   # rack application, creating a logger, and then executing the Goliath::Server with the loaded information.
   class Runner
 
+    SECOND = 1
+    STOP_TIMEOUT = 30 * SECOND
+
     # Flag to determine if the server should daemonize
     # @return [Boolean] True if the server should daemonize, false otherwise
     attr_accessor :daemonize
@@ -46,6 +49,7 @@ module Raad
 
       @service_options = options
 
+      @service_thread = nil
       @stop_lock = Mutex.new
       @stopped = false
     end
@@ -123,7 +127,6 @@ module Raad
     # @param opts [OptionsParser] The options parser
     # @return [exit] This will exit Ruby
     def show_options(opts)
-      puts(opts)
       exit!
     end
 
@@ -148,12 +151,16 @@ module Raad
 
       # by default exit on SIGTERM and SIGINT
       [:INT, :TERM].each do |sig|
-        trap(sig) { stop_service; exit }
+        trap(sig) { stop_service }
       end
 
       service.init_traps if service.respond_to?(:init_traps)
 
-      service.start
+      @service_thread = Thread.new do
+        Thread.current.abort_on_exception = true
+        service.start
+      end
+      @service_thread.join
     end
 
     def stop_service
@@ -162,6 +169,18 @@ module Raad
           @stopped = true
           Logger.info("stopping service")
           service.stop if service.respond_to?(:stop)
+
+          
+          join = nil; try = 0
+          while try <= STOP_TIMEOUT && join.nil? do
+            try += 1
+            join = @service_thread.join(SECOND)
+            Logger.warn("waiting for service to stop") if join.nil?
+          end
+          if join.nil?
+            Logger.error("stop timeout exhausted, killing service")
+            @service_thread.kill
+          end
         end
       end
     end
