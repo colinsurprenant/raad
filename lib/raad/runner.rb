@@ -2,6 +2,7 @@
 # Author: Colin Surprenant (colin.surprenant@needium.com, colin.surprenant@gmail.com, @colinsurprenant, http://github.com/colinsurprenant)
 
 require 'optparse'
+require 'thread'
 
 module Raad
   # The Goliath::Runner is responsible for parsing any provided options, settting up the
@@ -44,6 +45,9 @@ module Raad
       @daemonize = options.delete(:daemonize)
 
       @service_options = options
+
+      @stop_lock = Mutex.new
+      @stopped = false
     end
 
     # Create the options parser
@@ -138,13 +142,13 @@ module Raad
       Logger.info("starting #{$0} service in #{Raad.env.to_s} mode")
 
       at_exit do
+        stop_service
         Logger.info(">> Raad service wrapper stopped")
       end
-      at_exit { stop_service }
 
       # by default exit on SIGTERM and SIGINT
       [:INT, :TERM].each do |sig|
-        trap(sig) { exit }
+        trap(sig) { stop_service; exit }
       end
 
       service.init_traps if service.respond_to?(:init_traps)
@@ -153,8 +157,13 @@ module Raad
     end
 
     def stop_service
-      Logger.info("stopping service")
-      service.stop if service.respond_to?(:stop)
+      @stop_lock.synchronize do
+        unless stopped 
+          stopped = true
+          Logger.info("stopping service")
+          service.stop if service.respond_to?(:stop)
+        end
+      end
     end
 
     # Store the services pid into the @pid_file
