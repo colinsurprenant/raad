@@ -9,6 +9,7 @@ class Dummy
   
   def initialize
     @options = {}
+    @stop = false
   end
 
   def start
@@ -19,7 +20,8 @@ class Dummy
 
     Raad::Logger.info("gaga=#{@options[:gaga]}")
 
-    sleep(10)
+    sleep(4)
+    # while !@stop; sleep(0.5); end
   end
 
   def stop
@@ -27,6 +29,7 @@ class Dummy
     Raad::Logger.debug('stop debug trace')
     Raad::Logger.info('stop info trace')
     Raad::Logger.error('stop error trace')
+    @stop = true
   end
 
   def init_traps

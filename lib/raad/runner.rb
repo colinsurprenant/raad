@@ -127,6 +127,7 @@ module Raad
     # @param opts [OptionsParser] The options parser
     # @return [exit] This will exit Ruby
     def show_options(opts)
+      puts(opts)
       exit!
     end
 
@@ -145,13 +146,12 @@ module Raad
       Logger.info("starting #{$0} service in #{Raad.env.to_s} mode")
 
       at_exit do
-        stop_service
         Logger.info(">> Raad service wrapper stopped")
       end
 
       # by default exit on SIGTERM and SIGINT
       [:INT, :TERM].each do |sig|
-        trap(sig) { stop_service }
+        trap(sig) {stop_service{wait_or_kill_service}}
       end
 
       service.init_traps if service.respond_to?(:init_traps)
@@ -161,27 +161,27 @@ module Raad
         service.start
       end
       @service_thread.join
+      stop_service
     end
 
     def stop_service
-      @stop_lock.synchronize do
-        unless @stopped 
-          @stopped = true
-          Logger.info("stopping service")
-          service.stop if service.respond_to?(:stop)
+      return if @stopped
+      @stopped = true
+      Logger.info("stopping service")
+      service.stop if service.respond_to?(:stop)
+      yield if block_given?
+    end
 
-          
-          join = nil; try = 0
-          while try <= STOP_TIMEOUT && join.nil? do
-            try += 1
-            join = @service_thread.join(SECOND)
-            Logger.warn("waiting for service to stop") if join.nil?
-          end
-          if join.nil?
-            Logger.error("stop timeout exhausted, killing service")
-            @service_thread.kill
-          end
-        end
+    def wait_or_kill_service
+      join = nil; try = 0
+      while try <= STOP_TIMEOUT && join.nil? do
+        try += 1
+        join = @service_thread.join(SECOND)
+        Logger.warn("waiting for service to stop #{try}") if join.nil?
+      end
+      if join.nil?
+        Logger.error("stop timeout exhausted, killing service")
+        @service_thread.kill
       end
     end
 
