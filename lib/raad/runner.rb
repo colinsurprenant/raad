@@ -10,7 +10,7 @@ module Raad
   class Runner
 
     SECOND = 1
-    STOP_TIMEOUT = 30 * SECOND
+    STOP_TIMEOUT = 60 * SECOND
 
     # Flag to determine if the server should daemonize
     # @return [Boolean] True if the server should daemonize, false otherwise
@@ -50,7 +50,6 @@ module Raad
       @service_options = options
 
       @service_thread = nil
-      @stop_lock = Mutex.new
       @stopped = false
     end
 
@@ -173,11 +172,12 @@ module Raad
     end
 
     def wait_or_kill_service
-      join = nil; try = 0
-      while try <= STOP_TIMEOUT && join.nil? do
+      try = 0
+      join = @service_thread.join(5 * SECOND) # give it a few seconds before starting the countdown
+      while try < STOP_TIMEOUT && join.nil? do
         try += 1
         join = @service_thread.join(SECOND)
-        Logger.warn("waiting for service to stop #{try}") if join.nil?
+        Logger.warn("waiting for service to stop #{try}/#{STOP_TIMEOUT}") if join.nil?
       end
       if join.nil?
         Logger.error("stop timeout exhausted, killing service")
