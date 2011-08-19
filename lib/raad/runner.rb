@@ -10,7 +10,7 @@ module Raad
   class Runner
 
     SECOND = 1
-    STOP_TIMEOUT = 60 * SECOND
+    STOP_TIMEOUT = 10 * SECOND
 
     # Flag to determine if the server should daemonize
     # @return [Boolean] True if the server should daemonize, false otherwise
@@ -150,7 +150,7 @@ module Raad
 
       # by default exit on SIGTERM and SIGINT
       [:INT, :TERM].each do |sig|
-        trap(sig) {stop_service{wait_or_kill_service}}
+        trap(sig) {stop_service}
       end
 
       service.init_traps if service.respond_to?(:init_traps)
@@ -159,16 +159,22 @@ module Raad
         Thread.current.abort_on_exception = true
         service.start
       end
-      @service_thread.join
-      stop_service
+      while @service_thread.join(SECOND).nil?
+        if @stopped
+          Logger.info("stopping service")
+          service.stop if service.respond_to?(:stop)
+          wait_or_kill_service
+        end
+      end
+
+      unless @stopped
+        Logger.info("stopping service")
+        service.stop if service.respond_to?(:stop)
+      end
     end
 
     def stop_service
-      return if @stopped
       @stopped = true
-      Logger.info("stopping service")
-      service.stop if service.respond_to?(:stop)
-      yield if block_given?
     end
 
     def wait_or_kill_service
@@ -201,10 +207,8 @@ module Raad
     def load_config(file = nil)
       service_name = service.class.to_s.split('::').last.gsub(/(.)([A-Z])/,'\1_\2').downcase!
       file ||= File.expand_path("./config/#{service_name}.rb")
-      unless File.exists?(file)
-        Logger.warn("no config file=#{file}")
-        return
-      end
+      return unless File.exists?(file)
+      Logger.info("readind config file=#{file}")
       self.instance_eval(IO.read(file))
     end
 
