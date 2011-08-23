@@ -33,26 +33,32 @@ module Raad
 
       options[:command] = argv[0].to_s.downcase
       unless ['start', 'stop'].include?(options[:command])
-        puts("start|stop command is required")
+        puts(">> start|stop command is required")
         exit!
       end
 
       @service = service
-      
-      @logger_options = {
-        :file => options.delete(:log_file) || File.expand_path('raad.log'),
-        :stdout => options.delete(:log_stdout),
-        :verbose => options.delete(:verbose),
-      }
-
-      @pid_file = options.delete(:pid_file) || './raad.pid'
-      @service_name = service.class.to_s.split('::').last.gsub(/(.)([A-Z])/,'\1_\2').downcase!
+      @service_name = nil
+      @logger_options = nil
+      @pid_file = nil
       @service_thread = nil
       @stopped = false
     end
 
     def run
-      Configuration.load(options[:config] || File.expand_path("./config/#{@service_name}.rb"))
+      # first load config if present
+      Configuration.load(options[:config] || File.expand_path("./config/#{default_service_name}.rb"))
+
+      # then set vars which depends on configuration
+      @service_name = options[:name] || Configuration.daemon_name || default_service_name
+      @logger_options = {
+        :file => options.delete(:log_file) || File.expand_path("#{@service_name}.log"),
+        :stdout => options.delete(:log_stdout),
+        :verbose => options.delete(:verbose),
+      }
+      @pid_file = options.delete(:pid_file) || "./#{@service_name}.pid"
+
+      # setup logging
       Logger.setup(@logger_options)
       Logger.level = Configuration.log_level if Configuration.log_level
 
@@ -68,10 +74,14 @@ module Raad
       jruby = (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
       raise("daemonize not supported in JRuby") if options[:daemonize] && jruby
       
-      options[:daemonize] ? daemonize(daemon_name, options[:redirect]) {run_service} : run_service
+      options[:daemonize] ? daemonize(@service_name, options[:redirect]) {run_service} : run_service
     end
 
     private
+
+    def default_service_name
+      service.class.to_s.split('::').last.gsub(/(.)([A-Z])/,'\1_\2').downcase!
+    end
 
     # Create the options parser
     #
@@ -84,7 +94,7 @@ module Raad
       }
 
       @options_parser ||= OptionParser.new do |opts|
-        opts.banner = "Usage: <service> [options] start|stop"
+        opts.banner = "usage: <service> [options] start|stop"
 
         opts.separator ""
         opts.separator "raad common options:"
@@ -96,9 +106,10 @@ module Raad
         opts.on('-s', '--stdout', "Log to stdout (default: #{@options[:log_stdout]})") { |v| @options[:log_stdout] = v }
 
         opts.on('-c', '--config FILE', "Config file (default: ./config/<service>.rb)") { |v| @options[:config] = v }
-        opts.on('-P', '--pid FILE', "Pid file (default: off)") { |file| @options[:pid_file] = file }
         opts.on('-d', '--daemonize', "Run daemonized in the background (default: #{@options[:daemonize]})") { |v| @options[:daemonize] = v }
+        opts.on('-P', '--pid FILE', "Pid file (default: off)") { |file| @options[:pid_file] = file }
         opts.on('-r', '--redirect FILE', "Redirect stdout to FILE when daemonized") { |v| @options[:redirect] = v }
+        opts.on('-n', '--name NAME', "Daemon process name") { |v| @options[:name] = v }
         opts.on('-v', '--verbose', "Enable verbose logging (default: #{@options[:verbose]})") { |v| @options[:verbose] = v }
 
         opts.on('-h', '--help', 'Display help message') { show_options(opts) }
@@ -115,15 +126,11 @@ module Raad
       exit!
     end
 
-    def daemon_name
-      Configuration.daemon_name || @service_name
-    end
-
     # Run the server
     #
     # @return [Nil]
     def run_service
-      Logger.info("starting #{daemon_name} service in #{Raad.env.to_s} mode")
+      Logger.info("starting #{@service_name} service in #{Raad.env.to_s} mode")
 
       at_exit do
         Logger.info(">> Raad service wrapper stopped")
