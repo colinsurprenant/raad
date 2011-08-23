@@ -3,8 +3,6 @@
 
 module Raad
   
-  module_function
-
   @env = :development
 
   # Retrieves the current environment
@@ -53,4 +51,7 @@ module Raad
   def test?
     @env == :test
   end
+
+  module_function :env, :env=, :production?, :development?, :stage?, :test?
+
 end
