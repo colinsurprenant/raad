@@ -5,53 +5,73 @@ require 'optparse'
 require 'thread'
 
 module Raad
-  # The Goliath::Runner is responsible for parsing any provided options, settting up the
-  # rack application, creating a logger, and then executing the Goliath::Server with the loaded information.
   class Runner
+    include Daemonizable
 
     SECOND = 1
-    STOP_TIMEOUT = 10 * SECOND
-
-    # Flag to determine if the server should daemonize
-    # @return [Boolean] True if the server should daemonize, false otherwise
-    attr_accessor :daemonize
+    SOFT_STOP_TIMEOUT = 58 * SECOND
+    HARD_STOP_TIMEOUT = 60 * SECOND
 
     # The pid file for the server
     # @return [String] The file to write the servers pid file into
     attr_accessor :pid_file
 
-    # The  application
-    # @return [Object] The rack application the server will execute
+    # The application
+    # @return [Object] The service to execute
     attr_accessor :service
 
     # The parsed options
     # @return [Hash] The options parsed by the runner
     attr_reader :options
 
-    # Create a new Goliath::Runner
+    # Create a new Runner
     #
     # @param argv [Array] The command line arguments
-    # @param api [Object | nil] The Goliath::API this runner is for, can be nil
-    # @return [Goliath::Runner] An initialized Goliath::Runner
+    # @param service [Object] The service to execute
     def initialize(argv, service)
       options_parser(service).parse!(argv)
+
+      options[:command] = argv[0].to_s.downcase
+      unless ['start', 'stop'].include?(options[:command])
+        puts("start|stop command is required")
+        exit!
+      end
 
       @service = service
       
       @logger_options = {
-        :file => options.delete(:log_file),
+        :file => options.delete(:log_file) || File.expand_path('raad.log'),
         :stdout => options.delete(:log_stdout),
         :verbose => options.delete(:verbose),
       }
 
-      @pid_file = options.delete(:pid_file)
-      @daemonize = options.delete(:daemonize)
-
-      @service_options = options
-
+      @pid_file = options.delete(:pid_file) || './raad.pid'
+      @service_name = service.class.to_s.split('::').last.gsub(/(.)([A-Z])/,'\1_\2').downcase!
       @service_thread = nil
       @stopped = false
     end
+
+    def run
+      Configuration.load(options[:config] || File.expand_path("./config/#{@service_name}.rb"))
+      Logger.setup(@logger_options)
+      Logger.level = Configuration.log_level if Configuration.log_level
+
+      if options[:command] == 'stop'
+        puts(">> Raad service wrapper v#{VERSION} stopping")
+        send_signal('TERM', HARD_STOP_TIMEOUT) # if not stopped afer HARD_STOP_TIMEOUT, SIGKILL will be sent
+        exit!
+      end
+      puts(">> Raad service wrapper v#{VERSION} starting")
+
+      Dir.chdir(File.expand_path(File.dirname("./"))) unless Raad.test?
+
+      jruby = (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
+      raise("daemonize not supported in JRuby") if options[:daemonize] && jruby
+      
+      options[:daemonize] ? daemonize(daemon_name, options[:redirect]) {run_service} : run_service
+    end
+
+    private
 
     # Create the options parser
     #
@@ -64,11 +84,11 @@ module Raad
       }
 
       @options_parser ||= OptionParser.new do |opts|
-        opts.banner = "Usage: <service> [options]"
+        opts.banner = "Usage: <service> [options] start|stop"
 
         opts.separator ""
         opts.separator "raad common options:"
-
+    
         opts.on('-e', '--environment NAME', "Set the execution environment (prod, dev or test) (default: #{Raad.env.to_s})") { |val| Raad.env = val }
 
         opts.on('-u', '--user USER', "Run as specified user") {|v| @options[:user] = v }
@@ -78,48 +98,13 @@ module Raad
         opts.on('-c', '--config FILE', "Config file (default: ./config/<service>.rb)") { |v| @options[:config] = v }
         opts.on('-P', '--pid FILE', "Pid file (default: off)") { |file| @options[:pid_file] = file }
         opts.on('-d', '--daemonize', "Run daemonized in the background (default: #{@options[:daemonize]})") { |v| @options[:daemonize] = v }
+        opts.on('-r', '--redirect FILE', "Redirect stdout to FILE when daemonized") { |v| @options[:redirect] = v }
         opts.on('-v', '--verbose', "Enable verbose logging (default: #{@options[:verbose]})") { |v| @options[:verbose] = v }
 
         opts.on('-h', '--help', 'Display help message') { show_options(opts) }
       end
       service.respond_to?(:options_parser) ? service.options_parser(@options_parser) : @options_parser
     end
-
-    # Create environment to run the server.
-    # If daemonize is set this will fork off a child and kill the runner.
-    #
-    # @return [Nil]
-    def run
-      Dir.chdir(File.expand_path(File.dirname("./"))) unless Raad.test?
-
-      jruby = (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
-      raise("daemonize not supported in JRuby") if @daemonize && jruby
-      
-      if @daemonize
-        Process.fork do
-          Process.setsid
-          exit if fork
-
-          @pid_file ||= './raad.pid'
-          @logger_options[:file] ||= File.expand_path('raad.log')
-          store_pid(Process.pid)
-
-          File.umask(0000)
-
-          stdout_log_file = "#{File.dirname(@logger_options[:file])}/#{File.basename(@logger_options[:file])}_stdout.log"
-
-          STDIN.reopen("/dev/null")
-          STDOUT.reopen(stdout_log_file, "a")
-          STDERR.reopen(STDOUT)
-
-          run_service
-        end
-      else
-        run_service
-      end
-    end
-
-    private
 
     # Output the servers options
     #
@@ -130,26 +115,22 @@ module Raad
       exit!
     end
 
+    def daemon_name
+      Configuration.daemon_name || @service_name
+    end
+
     # Run the server
     #
     # @return [Nil]
     def run_service
-      Logger.setup(@logger_options)
-
-      load_config(options[:config])
-      Logger.level = Configuration.log_level if Configuration.log_level
-
-      # set process name
-      $0 = Configuration.daemon_name if Configuration.daemon_name
-
-      Logger.info("starting #{$0} service in #{Raad.env.to_s} mode")
+      Logger.info("starting #{daemon_name} service in #{Raad.env.to_s} mode")
 
       at_exit do
         Logger.info(">> Raad service wrapper stopped")
       end
 
       # by default exit on SIGTERM and SIGINT
-      [:INT, :TERM].each do |sig|
+      [:INT, :TERM, :QUIT].each do |sig|
         trap(sig) {stop_service}
       end
 
@@ -164,6 +145,7 @@ module Raad
           Logger.info("stopping service")
           service.stop if service.respond_to?(:stop)
           wait_or_kill_service
+          return
         end
       end
 
@@ -178,44 +160,17 @@ module Raad
     end
 
     def wait_or_kill_service
-      try = 0
-      join = @service_thread.join(5 * SECOND) # give it a few seconds before starting the countdown
-      while try < STOP_TIMEOUT && join.nil? do
-        try += 1
+      try = 0; join = nil
+      while (try += 1) <= SOFT_STOP_TIMEOUT && join.nil? do
         join = @service_thread.join(SECOND)
-        Logger.warn("waiting for service to stop #{try}/#{STOP_TIMEOUT}") if join.nil?
+        Logger.debug("waiting for service to stop #{try}/#{SOFT_STOP_TIMEOUT}") if join.nil?
       end
       if join.nil?
-        Logger.error("stop timeout exhausted, killing service")
+        Logger.error("stop timeout exhausted, killing service thread")
         @service_thread.kill
+        @service_thread.join
       end
     end
-
-    # Store the services pid into the @pid_file
-    #
-    # @param pid [Integer] The pid to store
-    # @return [Nil]
-    def store_pid(pid)
-      FileUtils.mkdir_p(File.dirname(@pid_file))
-      File.open(@pid_file, 'w') { |f| f.write(pid) }
-    end     
      
-    # Loads a configuration file and eval its content in the service object context
-    #
-    # @param file [String] The file to load, if not set will use ./config/{servive_name}
-    # @return [Nil]
-    def load_config(file = nil)
-      service_name = service.class.to_s.split('::').last.gsub(/(.)([A-Z])/,'\1_\2').downcase!
-      file ||= File.expand_path("./config/#{service_name}.rb")
-      return unless File.exists?(file)
-      Logger.info("readind config file=#{file}")
-      self.instance_eval(IO.read(file))
-    end
-
-    # cosmetic alias for config dsl
-    def configuration(&block)
-      Configuration.init(&block)
-    end
-
   end
 end

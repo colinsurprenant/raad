@@ -20,6 +20,11 @@ Authored by Colin Surprenant, [@colinsurprenant][twitter], [colin.surprenant@gma
 
 -------------------------------------------------------------------------------
 
+  Portions of this code are from the Thin project https://github.com/macournoyer/thin and under the following license:
+  Ruby License, http://www.ruby-lang.org/en/LICENSE.txt.
+
+-------------------------------------------------------------------------------
+
   Portions of this code are from the Goliath project https://github.com/postrank-labs/goliath/ and under the following license:
   Copyright (c) 2011 PostRank Inc.
 

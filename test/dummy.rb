@@ -18,10 +18,7 @@ class Dummy
     Raad::Logger.info('start info trace')
     Raad::Logger.error('start error trace')
 
-    Raad::Logger.info("gaga=#{@options[:gaga]}")
-
-    sleep(4)
-    # while !@stop; sleep(0.5); end
+    sleep(3)
   end
 
   def stop

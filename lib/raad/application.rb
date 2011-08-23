@@ -50,7 +50,6 @@ module Raad
       app = Object.module_eval(camel_case(file)).new
 
       runner = Raad::Runner.new(ARGV, app)
-      puts(">> Raad service wrapper v#{VERSION} starting")
       runner.run
     end
 

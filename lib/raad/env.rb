@@ -14,7 +14,7 @@ module Raad
     @env
   end
 
-  # Sets the current goliath environment
+  # Sets the current environment
   #
   # @param [String or Symbol] env the environment [development|production|stage|test]
   def env=(env)
