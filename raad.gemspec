@@ -1,4 +1,7 @@
-require 'lib/raad/version'
+lib = File.expand_path('../lib/', __FILE__)
+$:.unshift lib unless $:.include?(lib)
+
+require 'raad/version'
 
 Gem::Specification.new do |s|  
   s.name        = "raad"
