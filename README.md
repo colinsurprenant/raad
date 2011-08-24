@@ -9,7 +9,16 @@ Raad provides daemon control using the start/stop commands. Your code can option
 logging module. 
 
 ## Installation
+
+### Gem
 gem install raad
+
+### Bundler
+#### Latest from github
+gem "raad", :git => "git://github.com/praized/raad.git", :branch => "master"
+
+#### Released gem
+gem "raad", "~> 0.3.1"
 
 ## Example
 Create a class with a start and a stop method. Just by requiring 'raad', your class will be 
