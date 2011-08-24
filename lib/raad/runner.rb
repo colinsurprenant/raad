@@ -1,6 +1,3 @@
-# Copyright (c) 2011 Praized Media Inc.
-# Author: Colin Surprenant (colin.surprenant@needium.com, colin.surprenant@gmail.com, @colinsurprenant, http://github.com/colinsurprenant)
-
 require 'optparse'
 require 'thread'
 
@@ -29,7 +26,7 @@ module Raad
     # @param argv [Array] The command line arguments
     # @param service [Object] The service to execute
     def initialize(argv, service)
-      options_parser(service).parse!(argv)
+      create_options_parser(service).parse!(argv)
 
       options[:command] = argv[0].to_s.downcase
       unless ['start', 'stop'].include?(options[:command])
@@ -51,8 +48,17 @@ module Raad
 
       # then set vars which depends on configuration
       @service_name = options[:name] || Configuration.daemon_name || default_service_name
+
+      # ajust "dynamic defaults"
+      unless options[:log_file]
+        options[:log_file] = (options[:daemonize] ? File.expand_path("#{@service_name}.log") : nil)
+      end
+      unless options[:log_stdout]
+        options[:log_stdout] = !options[:daemonize]
+      end
+
       @logger_options = {
-        :file => options.delete(:log_file) || File.expand_path("#{@service_name}.log"),
+        :file => options.delete(:log_file),
         :stdout => options.delete(:log_stdout),
         :verbose => options.delete(:verbose),
       }
@@ -86,35 +92,33 @@ module Raad
     # Create the options parser
     #
     # @return [OptionParser] Creates the options parser for the runner with the default options
-    def options_parser(service)
+    def create_options_parser(service)
       @options ||= {
         :daemonize => false,
         :verbose => false,
-        :log_stdout => false
       }
 
-      @options_parser ||= OptionParser.new do |opts|
-        opts.banner = "usage: <service> [options] start|stop"
+      options_parser ||= OptionParser.new do |opts|
+        opts.banner = "usage: ruby <service>.rb [options] start|stop"
 
         opts.separator ""
-        opts.separator "raad common options:"
+        opts.separator "Raad common options:"
     
-        opts.on('-e', '--environment NAME', "Set the execution environment (prod, dev or test) (default: #{Raad.env.to_s})") { |val| Raad.env = val }
+        opts.on('-e', '--environment NAME', "set the execution environment (default: #{Raad.env.to_s})") { |val| Raad.env = val }
 
-        opts.on('-u', '--user USER', "Run as specified user") {|v| @options[:user] = v }
-        opts.on('-l', '--log FILE', "Log to file (default: off)") { |file| @options[:log_file] = file }
-        opts.on('-s', '--stdout', "Log to stdout (default: #{@options[:log_stdout]})") { |v| @options[:log_stdout] = v }
+        opts.on('-l', '--log FILE', "log to file (default: in console mode: no, daemonized: <service>.log)") { |file| @options[:log_file] = file }
+        opts.on('-s', '--stdout', "log to stdout (default: in console mode: true, daemonized: false)") { |v| @options[:log_stdout] = v }
 
-        opts.on('-c', '--config FILE', "Config file (default: ./config/<service>.rb)") { |v| @options[:config] = v }
-        opts.on('-d', '--daemonize', "Run daemonized in the background (default: #{@options[:daemonize]})") { |v| @options[:daemonize] = v }
-        opts.on('-P', '--pid FILE', "Pid file (default: off)") { |file| @options[:pid_file] = file }
-        opts.on('-r', '--redirect FILE', "Redirect stdout to FILE when daemonized") { |v| @options[:redirect] = v }
-        opts.on('-n', '--name NAME', "Daemon process name") { |v| @options[:name] = v }
-        opts.on('-v', '--verbose', "Enable verbose logging (default: #{@options[:verbose]})") { |v| @options[:verbose] = v }
+        opts.on('-c', '--config FILE', "config file (default: ./config/<service>.rb)") { |v| @options[:config] = v }
+        opts.on('-d', '--daemonize', "run daemonized in the background (default: #{@options[:daemonize]})") { |v| @options[:daemonize] = v }
+        opts.on('-P', '--pid FILE', "pid file when daemonized (default: <service>.pid)") { |file| @options[:pid_file] = file }
+        opts.on('-r', '--redirect FILE', "redirect stdout to FILE when daemonized (default: no)") { |v| @options[:redirect] = v }
+        opts.on('-n', '--name NAME', "daemon process name (default: <service>)") { |v| @options[:name] = v }
+        opts.on('-v', '--verbose', "enable verbose logging (default: #{@options[:verbose]})") { |v| @options[:verbose] = v }
 
-        opts.on('-h', '--help', 'Display help message') { show_options(opts) }
+        opts.on('-h', '--help', 'display help message') { show_options(opts) }
       end
-      service.respond_to?(:options_parser) ? service.options_parser(@options_parser) : @options_parser
+      service.respond_to?(:options_parser) ? service.options_parser(options_parser) : options_parser
     end
 
     # Output the servers options
@@ -141,15 +145,13 @@ module Raad
         trap(sig) {stop_service}
       end
 
-      service.init_traps if service.respond_to?(:init_traps)
-
       @service_thread = Thread.new do
         Thread.current.abort_on_exception = true
         service.start
       end
       while @service_thread.join(SECOND).nil?
         if @stopped
-          Logger.info("stopping service")
+          Logger.info("stopping #{@service_name} service")
           service.stop if service.respond_to?(:stop)
           wait_or_kill_service
           return
@@ -157,7 +159,7 @@ module Raad
       end
 
       unless @stopped
-        Logger.info("stopping service")
+        Logger.info("stopping #{@service_name} service")
         service.stop if service.respond_to?(:stop)
       end
     end

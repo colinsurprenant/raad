@@ -1,8 +1,7 @@
-Raad v0.1.0
-================
+# Raad
 
-Ruby as a Daemon lightweight service wrapper
-Authored by Colin Surprenant, [@colinsurprenant][twitter], [colin.surprenant@gmail.com][gmail], [http://github.com/colinsurprenant][github]
+Raad - Ruby as a Daemon lightweight service wrapper
+Authored by Colin Surprenant, [@colinsurprenant][twitter], [colin.surprenant@needium.com][needium], [colin.surprenant@gmail.com][gmail], [http://github.com/colinsurprenant][github]
 
   Copyright 2011 PraizedMedia Inc. 
 
@@ -20,12 +19,12 @@ Authored by Colin Surprenant, [@colinsurprenant][twitter], [colin.surprenant@gma
 
 -------------------------------------------------------------------------------
 
-  Portions of this code are from the Thin project https://github.com/macournoyer/thin and under the following license:
+  Portions of this code are from the Thin project (https://github.com/macournoyer/thin) and under the following license:
   Ruby License, http://www.ruby-lang.org/en/LICENSE.txt.
 
 -------------------------------------------------------------------------------
 
-  Portions of this code are from the Goliath project https://github.com/postrank-labs/goliath/ and under the following license:
+  Portions of this code are from the Goliath project (https://github.com/postrank-labs/goliath/) and under the following license:
   Copyright (c) 2011 PostRank Inc.
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -72,6 +71,7 @@ Authored by Colin Surprenant, [@colinsurprenant][twitter], [colin.surprenant@gma
   OTHER DEALINGS IN THE SOFTWARE.
 
 
-[twitter]: http://twitter.com/colinsurprenant
+[needium]: colin.surprenant@needium.com
 [gmail]: colin.surprenant@gmail.com
+[twitter]: http://twitter.com/colinsurprenant
 [github]: http://github.com/colinsurprenant

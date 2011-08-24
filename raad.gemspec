@@ -1,7 +1,3 @@
-# Copyright (c) 2011 Praized Media Inc.
-# Author: Colin Surprenant (colin@needium.com, colin.surprenant@gmail.com)
-
- 
 require 'lib/raad/version'
 
 Gem::Specification.new do |s|  
