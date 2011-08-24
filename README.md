@@ -8,6 +8,9 @@ the start and stop methods, can be used seemslessy as a daemon or a normal conso
 Raad provides daemon control using the start/stop commands. Your code can optionnally use the Raad
 logging module. 
 
+## Installation
+gem install raad
+
 ## Example
 Create a class with a start and a stop method. Just by requiring 'raad', your class will be 
 wrapped by Raad and daemonizable.
