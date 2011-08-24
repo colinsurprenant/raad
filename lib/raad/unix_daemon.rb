@@ -58,8 +58,10 @@ module Daemonizable
       Timeout.timeout(timeout) do
         sleep 0.1 while Process.running?(pid)
       end
+      true
     else
       puts(">> can't stop process, no pid found in #{@pid_file}")
+      false
     end
   rescue Timeout::Error
     force_kill
@@ -74,8 +76,10 @@ module Daemonizable
       puts(">> sending KILL signal to process #{pid}")
       Process.kill("KILL", pid)
       File.delete(@pid_file) if File.exist?(@pid_file)
+      true
     else
       puts(">> can't stop process, no pid found in #{@pid_file}")
+      false
     end
   end
   

@@ -31,7 +31,7 @@ module Raad
       options[:command] = argv[0].to_s.downcase
       unless ['start', 'stop'].include?(options[:command])
         puts(">> start|stop command is required")
-        exit!
+        exit!(false)
       end
 
       @service = service
@@ -70,8 +70,8 @@ module Raad
 
       if options[:command] == 'stop'
         puts(">> Raad service wrapper v#{VERSION} stopping")
-        send_signal('TERM', HARD_STOP_TIMEOUT) # if not stopped afer HARD_STOP_TIMEOUT, SIGKILL will be sent
-        exit!
+        success = send_signal('TERM', HARD_STOP_TIMEOUT) # if not stopped afer HARD_STOP_TIMEOUT, SIGKILL will be sent
+        exit!(success)
       end
       puts(">> Raad service wrapper v#{VERSION} starting")
 
@@ -127,7 +127,7 @@ module Raad
     # @return [exit] This will exit Ruby
     def show_options(opts)
       puts(opts)
-      exit!
+      exit!(false)
     end
 
     # Run the server
