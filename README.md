@@ -1,9 +1,9 @@
 # Raad v0.3.1
 
-Raad - Ruby as a Daemon lightweight service wrapper.
+Raad - Ruby as a daemon lightweight service wrapper.
 
 Raad is a non-intrusive, lightweight, simple Ruby daemon maker. Basically A simple class which implements
-the start and stop methods, can be used seemslessy as a daemon or a normal console app.
+the start and stop methods, can be used seamlessly as a daemon or a normal console app.
 
 Raad provides daemon control using the start/stop commands. Your code can optionnally use the Raad
 logging module. 
