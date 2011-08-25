@@ -1,5 +1,6 @@
 require 'optparse'
 require 'thread'
+require 'monitor'
 
 module Raad
   class Runner
@@ -9,26 +10,17 @@ module Raad
     SOFT_STOP_TIMEOUT = 58 * SECOND
     HARD_STOP_TIMEOUT = 60 * SECOND
 
-    # The pid file for the server
-    # @return [String] The file to write the servers pid file into
-    attr_accessor :pid_file
-
-    # The application
-    # @return [Object] The service to execute
-    attr_accessor :service
-
-    # The parsed options
-    # @return [Hash] The options parsed by the runner
-    attr_reader :options
+    attr_accessor :service, :pid_file, :options
 
     # Create a new Runner
     #
-    # @param argv [Array] The command line arguments
-    # @param service [Object] The service to execute
+    # @param argv [Array] command line arguments
+    # @param service [Object] service to execute
     def initialize(argv, service)
       create_options_parser(service).parse!(argv)
 
-      options[:command] = argv[0].to_s.downcase
+      # start/stop 
+      @options[:command] = argv[0].to_s.downcase
       unless ['start', 'stop'].include?(options[:command])
         puts(">> start|stop command is required")
         exit!(false)
@@ -38,25 +30,26 @@ module Raad
       @service_name = nil
       @logger_options = nil
       @pid_file = nil
-      @service_thread = nil
-      @stopped = false
+
+      # signals handling
+      @signals = []
+      @monitor = Monitor.new
+      @stop_signaled = false
     end
 
     def run
       # first load config if present
       Configuration.load(options[:config] || File.expand_path("./config/#{default_service_name}.rb"))
 
-      # then set vars which depends on configuration
+      # settings which depends on configuration
       @service_name = options[:name] || Configuration.daemon_name || default_service_name
 
-      # ajust "dynamic defaults"
       unless options[:log_file]
         options[:log_file] = (options[:daemonize] ? File.expand_path("#{@service_name}.log") : nil)
       end
       unless options[:log_stdout]
         options[:log_stdout] = !options[:daemonize]
       end
-
       @logger_options = {
         :file => options.delete(:log_file),
         :stdout => options.delete(:log_stdout),
@@ -64,15 +57,17 @@ module Raad
       }
       @pid_file = options.delete(:pid_file) || "./#{@service_name}.pid"
 
-      # setup logging
-      Logger.setup(@logger_options)
-      Logger.level = Configuration.log_level if Configuration.log_level
-
+      # check for stop command, @pid_file must be set
       if options[:command] == 'stop'
         puts(">> Raad service wrapper v#{VERSION} stopping")
         success = send_signal('TERM', HARD_STOP_TIMEOUT) # if not stopped afer HARD_STOP_TIMEOUT, SIGKILL will be sent
         exit!(success)
       end
+
+      # setup logging
+      Logger.setup(@logger_options)
+      Logger.level = Configuration.log_level if Configuration.log_level
+
       puts(">> Raad service wrapper v#{VERSION} starting")
 
       Dir.chdir(File.expand_path(File.dirname("./"))) unless Raad.test?
@@ -84,6 +79,76 @@ module Raad
     end
 
     private
+
+    # Run the service
+    #
+    # @return [Nil]
+    def run_service
+      Logger.info("starting #{@service_name} service in #{Raad.env.to_s} mode")
+
+      at_exit do
+        Logger.info(">> Raad service wrapper stopped")
+      end
+
+      # store received signals into the @signal queue
+      [:INT, :TERM, :QUIT].each do |sig|
+        trap(sig) {@monitor.synchronize{@signals << :STOP}}
+      end
+
+      # launch the signal handler thread
+      signals_thread = Thread.new do
+        Thread.current.abort_on_exception = true
+        loop do
+          signals = @monitor.synchronize{s = @signals.dup; @signals.clear; s}
+
+          if signals.include?(:STOP) && !@stop_signaled
+            @stop_signaled = true
+            stop_service
+          end
+
+          sleep(0.5)
+        end
+      end
+
+      # launch the service thread and call start. we expect start not to return
+      # unless it is done or has been stopped.
+      service_thread = Thread.new do
+        Thread.current.abort_on_exception = true
+        service.start
+        stop_service unless @stop_signaled
+      end
+
+      success = wait_or_kill(service_thread)
+      success ? exit : exit!(false)
+    end
+
+    def stop_service
+      Logger.info("stopping #{@service_name} service")
+      service.stop if service.respond_to?(:stop)
+    end
+
+    # try to do a timeout join periodically on the given thread. if the join succeed then the stop
+    # sequence was successful and return true.
+    # Otherwise, on timeout if stop has beed signaled, wait a maximum of SOFT_STOP_TIMEOUT on the
+    # thread and kill it if the timeout is reached and return false in that case.
+    def wait_or_kill(thread)
+      while thread.join(SECOND).nil?
+        if @stop_signaled
+          try = 0; join = nil
+          while (try += 1) <= SOFT_STOP_TIMEOUT && join.nil? do
+            join = thread.join(SECOND)
+            Logger.debug("waiting for service to stop #{try}/#{SOFT_STOP_TIMEOUT}") if join.nil?
+          end
+          if join.nil?
+            Logger.error("stop timeout exhausted, killing service thread")
+            thread.kill
+            return false
+          end
+          return true
+        end
+      end
+      true
+    end
 
     def default_service_name
       service.class.to_s.split('::').last.gsub(/(.)([A-Z])/,'\1_\2').downcase!
@@ -128,57 +193,6 @@ module Raad
     def show_options(opts)
       puts(opts)
       exit!(false)
-    end
-
-    # Run the server
-    #
-    # @return [Nil]
-    def run_service
-      Logger.info("starting #{@service_name} service in #{Raad.env.to_s} mode")
-
-      at_exit do
-        Logger.info(">> Raad service wrapper stopped")
-      end
-
-      # by default exit on SIGTERM and SIGINT
-      [:INT, :TERM, :QUIT].each do |sig|
-        trap(sig) {stop_service}
-      end
-
-      @service_thread = Thread.new do
-        Thread.current.abort_on_exception = true
-        service.start
-      end
-      while @service_thread.join(SECOND).nil?
-        if @stopped
-          Logger.info("stopping #{@service_name} service")
-          service.stop if service.respond_to?(:stop)
-          wait_or_kill_service
-          return
-        end
-      end
-
-      unless @stopped
-        Logger.info("stopping #{@service_name} service")
-        service.stop if service.respond_to?(:stop)
-      end
-    end
-
-    def stop_service
-      @stopped = true
-    end
-
-    def wait_or_kill_service
-      try = 0; join = nil
-      while (try += 1) <= SOFT_STOP_TIMEOUT && join.nil? do
-        join = @service_thread.join(SECOND)
-        Logger.debug("waiting for service to stop #{try}/#{SOFT_STOP_TIMEOUT}") if join.nil?
-      end
-      if join.nil?
-        Logger.error("stop timeout exhausted, killing service thread")
-        @service_thread.kill
-        @service_thread.join
-      end
     end
      
   end
