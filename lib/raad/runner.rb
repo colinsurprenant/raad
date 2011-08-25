@@ -131,6 +131,8 @@ module Raad
     # sequence was successful and return true.
     # Otherwise, on timeout if stop has beed signaled, wait a maximum of SOFT_STOP_TIMEOUT on the
     # thread and kill it if the timeout is reached and return false in that case.
+    #
+    # @return [Boolean] true if the thread normally terminated, false if a kill was necessary
     def wait_or_kill(thread)
       while thread.join(SECOND).nil?
         if @stop_signaled
