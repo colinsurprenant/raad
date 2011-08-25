@@ -94,12 +94,12 @@ The Log4r gem (~> 1.1.9) is required.
 ## Author
 Authored by Colin Surprenant, [@colinsurprenant][twitter], [colin.surprenant@needium.com][needium], [colin.surprenant@gmail.com][gmail], [http://github.com/colinsurprenant][github]
 
-## Acknoledgements
+## Acknowledgements
 Thanks to the Thin ([https://github.com/macournoyer/thin][thin]), Goliath ([https://github.com/postrank-labs/goliath/][goliath]) 
 and Sinatra ([https://github.com/bmizerany/sinatra][sinatra]) projects for providing inspiration and/or code!
 
 ## License
-Raada is distributed under the Apache License, Version 2.0. See the LICENSE.md file.
+Raad is distributed under the Apache License, Version 2.0. See the LICENSE.md file.
 
 [needium]: colin.surprenant@needium.com
 [gmail]: colin.surprenant@gmail.com
