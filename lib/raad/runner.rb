@@ -82,7 +82,7 @@ module Raad
 
     # Run the service
     #
-    # @return [Nil]
+    # @return nil
     def run_service
       Logger.info("starting #{@service_name} service in #{Raad.env.to_s} mode")
 
@@ -90,20 +90,24 @@ module Raad
         Logger.info(">> Raad service wrapper stopped")
       end
 
-      # store received signals into the @signal queue
+      # store received signals into the @signal queue. here we want to avoid
+      # doing anything complex from within the trap block. 
       [:INT, :TERM, :QUIT].each do |sig|
         trap(sig) {@monitor.synchronize{@signals << :STOP}}
       end
 
-      # launch the signal handler thread
+      # launch the signal handler thread. the idea here is to handle signal outside the 
+      # trap block. the trap block will simply store the signal which this thread will 
+      # retrieve and do whatever is required. 
       signals_thread = Thread.new do
         Thread.current.abort_on_exception = true
         loop do
           signals = @monitor.synchronize{s = @signals.dup; @signals.clear; s}
 
-          if signals.include?(:STOP) && !@stop_signaled
+          if signals.include?(:STOP)
             @stop_signaled = true
             stop_service
+            break
           end
 
           sleep(0.5)
@@ -115,11 +119,11 @@ module Raad
       service_thread = Thread.new do
         Thread.current.abort_on_exception = true
         service.start
-        stop_service unless @stop_signaled
+        stop_service unless @stop_signaled # don't stop twice if already called from the signals_thread
       end
 
-      success = wait_or_kill(service_thread)
-      success ? exit : exit!(false)
+      # use exit and not exit! to make sure the at_exit hooks are called, like the pid cleanup, etc.
+      exit(wait_or_kill(service_thread))
     end
 
     def stop_service
@@ -128,14 +132,16 @@ module Raad
     end
 
     # try to do a timeout join periodically on the given thread. if the join succeed then the stop
-    # sequence was successful and return true.
+    # sequence is successful and return true.
     # Otherwise, on timeout if stop has beed signaled, wait a maximum of SOFT_STOP_TIMEOUT on the
     # thread and kill it if the timeout is reached and return false in that case.
     #
     # @return [Boolean] true if the thread normally terminated, false if a kill was necessary
     def wait_or_kill(thread)
       while thread.join(SECOND).nil?
+        # the join has timed out, thread is still buzzy.
         if @stop_signaled
+          # but if stop has been signalled, start "the final countdown" ♫
           try = 0; join = nil
           while (try += 1) <= SOFT_STOP_TIMEOUT && join.nil? do
             join = thread.join(SECOND)
@@ -152,6 +158,9 @@ module Raad
       true
     end
 
+    # convert the service class name from CameCase to underscore
+    #
+    # @return [String] underscored service class name
     def default_service_name
       service.class.to_s.split('::').last.gsub(/(.)([A-Z])/,'\1_\2').downcase!
     end
@@ -188,10 +197,9 @@ module Raad
       service.respond_to?(:options_parser) ? service.options_parser(options_parser) : options_parser
     end
 
-    # Output the servers options
+    # Output the servers options and exit Ruby
     #
     # @param opts [OptionsParser] The options parser
-    # @return [exit] This will exit Ruby
     def show_options(opts)
       puts(opts)
       exit!(false)
