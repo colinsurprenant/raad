@@ -1,6 +1,4 @@
 require 'optparse'
-require 'thread'
-require 'monitor'
 
 module Raad
   class Runner
@@ -31,9 +29,6 @@ module Raad
       @logger_options = nil
       @pid_file = nil
 
-      # signals handling
-      @signals = []
-      @monitor = Monitor.new
       @stop_signaled = false
     end
 
@@ -90,28 +85,8 @@ module Raad
         Logger.info(">> Raad service wrapper stopped")
       end
 
-      # store received signals into the @signal queue. here we want to avoid
-      # doing anything complex from within the trap block. 
       [:INT, :TERM, :QUIT].each do |sig|
-        trap(sig) {@monitor.synchronize{@signals << :STOP}}
-      end
-
-      # launch the signal handler thread. the idea here is to handle signal outside the 
-      # trap block. the trap block will simply store the signal which this thread will 
-      # retrieve and do whatever is required. 
-      signals_thread = Thread.new do
-        Thread.current.abort_on_exception = true
-        loop do
-          signals = @monitor.synchronize{s = @signals.dup; @signals.clear; s}
-
-          if signals.include?(:STOP)
-            @stop_signaled = true
-            stop_service
-            break
-          end
-
-          sleep(0.5)
-        end
+        SignalTrampoline.trap(sig) {@stop_signaled = true; stop_service}
       end
 
       # launch the service thread and call start. we expect start not to return
@@ -119,7 +94,7 @@ module Raad
       service_thread = Thread.new do
         Thread.current.abort_on_exception = true
         service.start
-        stop_service unless @stop_signaled # don't stop twice if already called from the signals_thread
+        stop_service unless @stop_signaled # don't stop twice if already called from the signal handler
       end
 
       # use exit and not exit! to make sure the at_exit hooks are called, like the pid cleanup, etc.
