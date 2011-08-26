@@ -1,4 +1,4 @@
-# Raad v0.3.1
+# Raad v0.3.3
 
 Raad - Ruby as a daemon lightweight service wrapper.
 
@@ -18,7 +18,7 @@ gem install raad
 gem "raad", :git => "git://github.com/praized/raad.git", :branch => "master"
 
 #### Released gem
-gem "raad", "~> 0.3.1"
+gem "raad", "~> 0.3.3"
 
 ## Example
 Create a class with a start and a stop method. Just by requiring 'raad', your class will be 
