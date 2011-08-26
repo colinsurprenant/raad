@@ -64,23 +64,30 @@ module Daemonizable
       false
     end
   rescue Timeout::Error
-    force_kill
+    force_kill_and_remove_pid_file
   rescue Interrupt
-    force_kill
+    force_kill_and_remove_pid_file
   rescue Errno::ESRCH # No such process
-    force_kill
+    puts(">> can't stop process, no such process #{pid}")
+    remove_pid_file
+    false
   end
   
-  def force_kill
-    if pid = read_pid_file
+  def force_kill_and_remove_pid_file
+    success = if (pid = read_pid_file)
       puts(">> sending KILL signal to process #{pid}")
       Process.kill("KILL", pid)
-      File.delete(@pid_file) if File.exist?(@pid_file)
       true
     else
       puts(">> can't stop process, no pid found in #{@pid_file}")
       false
     end
+    remove_pid_file
+    success
+  rescue Errno::ESRCH # No such process
+    puts(">> can't stop process, no such process #{pid}")
+    remove_pid_file
+    false
   end
   
   def read_pid_file
