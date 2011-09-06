@@ -24,30 +24,42 @@ module Daemonizable
     File.exist?(@pid_file) ? open(@pid_file).read.to_i : nil
   end
   
-  def daemonize(name, stdout_file)
+  def daemonize(argv, name, stdout_file)
     remove_stale_pid_file
     pwd = Dir.pwd
 
-    # do the double fork dance
-    Process.fork do
-      Process.setsid
-      exit if fork
-      $0 = name # set process name
+    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
+      # in jruby the process is to spawn a new process and re execute ourself
+      # swap command 'start' for 'post_fork' to signal the second exec
+      spawn_argv = argv.map{|arg| arg == 'start' ? 'post_fork' : arg}
+      Spoon.spawnp('jruby', $0, *spawn_argv)
+    else
+      # do the double fork dance
+      Process.fork do
+        Process.setsid
+        exit if fork
+ 
+        Dir.chdir(pwd)
+        post_fork_setup(name, stdout_file)
 
-      File.umask(0000) # file mode creation mask to 000 to allow creation of files with any required permission late
-      Dir.chdir(pwd)
-      write_pid_file
-
-      # redirect stdout into a log
-      STDIN.reopen('/dev/null')
-      stdout_file ? STDOUT.reopen(stdout_file, "a") : STDOUT.reopen('/dev/null', 'a')
-      STDERR.reopen(STDOUT)
-
-      at_exit do
-        remove_pid_file
+        yield
       end
+    end
+  end
 
-      yield
+  def post_fork_setup(name, stdout_file)
+    $0 = name # set process name, does not work with jruby
+
+    File.umask(0000) # file mode creation mask to 000 to allow creation of files with any required permission late
+    write_pid_file
+
+    # redirect stdin, stdout, stderr
+    STDIN.reopen('/dev/null')
+    stdout_file ? STDOUT.reopen(stdout_file, "a") : STDOUT.reopen('/dev/null', 'a')
+    STDERR.reopen(STDOUT)
+
+    at_exit do
+      remove_pid_file
     end
   end
 
@@ -103,7 +115,6 @@ module Daemonizable
   end
 
   def write_pid_file
-    puts(">> writing pid to #{@pid_file}")
     open(@pid_file,"w") { |f| f.write(Process.pid) }
     File.chmod(0644, @pid_file)
   end

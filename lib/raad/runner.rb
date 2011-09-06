@@ -15,11 +15,12 @@ module Raad
     # @param argv [Array] command line arguments
     # @param service [Object] service to execute
     def initialize(argv, service)
+      @argv = argv.dup # lets keep a copy for jruby double-launch
       create_options_parser(service).parse!(argv)
 
       # start/stop 
       @options[:command] = argv[0].to_s.downcase
-      unless ['start', 'stop'].include?(options[:command])
+      unless ['start', 'stop', 'post_fork'].include?(options[:command])
         puts(">> start|stop command is required")
         exit!(false)
       end
@@ -63,14 +64,16 @@ module Raad
       Logger.setup(@logger_options)
       Logger.level = Configuration.log_level if Configuration.log_level
 
-      puts(">> Raad service wrapper v#{VERSION} starting")
-
       Dir.chdir(File.expand_path(File.dirname("./"))) unless Raad.test?
 
-      jruby = (defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
-      raise("daemonize not supported in JRuby") if options[:daemonize] && jruby
-      
-      options[:daemonize] ? daemonize(@service_name, options[:redirect]) {run_service} : run_service
+      if options[:command] == 'post_fork'
+        # we've been spawned and re executed, finish setup
+        post_fork_setup(@service_name, options[:redirect])
+        run_service
+      else
+        puts(">> Raad service wrapper v#{VERSION} starting")
+        options[:daemonize] ? daemonize(@argv, @service_name, options[:redirect]) {run_service} : run_service
+      end
     end
 
     private
@@ -85,7 +88,8 @@ module Raad
         Logger.info(">> Raad service wrapper stopped")
       end
 
-      [:INT, :TERM, :QUIT].each do |sig|
+      # do not trap :QUIT because its not supported in jruby
+      [:INT, :TERM].each do |sig|
         SignalTrampoline.trap(sig) {@stop_signaled = true; stop_service}
       end
 
