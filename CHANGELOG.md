@@ -6,3 +6,7 @@
 - force kill + pid removal bug
 - wrong exit code bug
 - comments & cosmetics
+
+# 0.4, 09-05-2011
+- using SignalTrampoline for safe signal handling
+- JRuby support

@@ -86,7 +86,6 @@ tbd.
 ## TODO
 - better doc, more examples
 - specs
-- JRuby support
 
 ## Dependencies
 The Log4r gem (~> 1.1.9) is required.
