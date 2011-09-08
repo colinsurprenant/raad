@@ -1,6 +1,8 @@
 require 'etc'
 require 'timeout'
 
+require 'raad/spoon' if Raad.jruby?
+
 module Process
 
   def running?(pid)
@@ -28,11 +30,11 @@ module Daemonizable
     remove_stale_pid_file
     pwd = Dir.pwd
 
-    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
-      # in jruby the process is to spawn a new process and re execute ourself
+    if Raad.jruby?
+      # in jruby the process is to posix-spawn a new process and re execute ourself using Spoon.
       # swap command 'start' for 'post_fork' to signal the second exec
       spawn_argv = argv.map{|arg| arg == 'start' ? 'post_fork' : arg}
-      Spoon.spawnp('jruby', $0, *spawn_argv)
+      Spoon.spawnp(Raad.ruby_path, $0, *spawn_argv)
     else
       # do the double fork dance
       Process.fork do

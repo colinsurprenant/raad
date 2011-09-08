@@ -1,3 +1,5 @@
+require 'rbconfig'
+
 module Raad
   
   @env = :development
@@ -49,6 +51,20 @@ module Raad
     @env == :test
   end
 
-  module_function :env, :env=, :production?, :development?, :stage?, :test?
+  # are we running inside jruby
+  #
+  # @return [Boolean] true if runnig inside jruby
+  def jruby?
+    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
+  end
+
+  # absolute path of current interpreter
+  #
+  # @return [String] absolute path of current interpreter
+  def ruby_path
+    File.join(Config::CONFIG["bindir"], Config::CONFIG["RUBY_INSTALL_NAME"] + Config::CONFIG["EXEEXT"])
+  end
+
+  module_function :env, :env=, :production?, :development?, :stage?, :test?, :jruby?, :ruby_path
 
 end
