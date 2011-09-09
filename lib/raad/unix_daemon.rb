@@ -26,7 +26,7 @@ module Daemonizable
     File.exist?(@pid_file) ? open(@pid_file).read.to_i : nil
   end
   
-  def daemonize(argv, name, stdout_file)
+  def daemonize(argv, name, stdout_file = nil)
     remove_stale_pid_file
     pwd = Dir.pwd
 
@@ -39,7 +39,7 @@ module Daemonizable
       # do the double fork dance
       Process.fork do
         Process.setsid
-        exit if fork
+        exit if fork # exit parent
  
         Dir.chdir(pwd)
         post_fork_setup(name, stdout_file)
@@ -49,7 +49,7 @@ module Daemonizable
     end
   end
 
-  def post_fork_setup(name, stdout_file)
+  def post_fork_setup(name, stdout_file = nil)
     $0 = name # set process name, does not work with jruby
 
     File.umask(0000) # file mode creation mask to 000 to allow creation of files with any required permission late

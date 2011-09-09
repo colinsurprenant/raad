@@ -4,14 +4,14 @@ module Raad
   
   @env = :development
 
-  # Retrieves the current environment
+  # retrieves the current environment
   #
   # @return [Symbol] the current environment
   def env
     @env
   end
 
-  # Sets the current environment
+  # sets the current environment
   #
   # @param [String or Symbol] env the environment [development|production|stage|test]
   def env=(env)
@@ -30,21 +30,21 @@ module Raad
     @env == :production
   end
 
-  # Determines if we are in the development environment
+  # are we in the development environment
   #
   # @return [Boolean] true if current environemnt is development, false otherwise
   def development?
     @env == :development
   end
 
-  # Determines if we are in the staging environment
+  # are we in the staging environment
   #
   # @return [Boolean] true if current environemnt is staging, false otherwise
   def stage?
     @env == :stage
   end
 
-  # Determines if we are in the test environment
+  # are we in the test environment
   #
   # @return [Boolean] true if current environemnt is test, false otherwise
   def test?
