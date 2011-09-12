@@ -1,0 +1,7 @@
+>> Raad service wrapper v0.4.0 starting
+starting test2 service in development mode
+test2 running
+stopping test2 service
+test2 stop called
+stop timeout exhausted, killing service thread
+>> Raad service wrapper stopped

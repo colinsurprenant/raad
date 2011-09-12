@@ -10,12 +10,14 @@ module Raad
     def setup(options = {})
       @log = Log4r::Logger.new('raad')
 
-      log_format = Log4r::PatternFormatter.new(:pattern => "[#{Process.pid}:%l] %d :: %m")
+      # select only :pattern, :date_pattern, :date_method and flush nils
+      formatter_options = {:pattern => "[#{Process.pid}:%l] %d :: %m"}.merge(options.reject{|k, v| !([:pattern, :date_pattern, :date_method].include?(k) && !v.nil?)})
+
+      log_format = Log4r::PatternFormatter.new(formatter_options)
       setup_file_logger(@log, log_format, options[:file]) if options[:file]
       setup_stdout_logger(@log, log_format) if options[:stdout]
 
       @verbose = !!options[:verbose]
-
       @log.level = @verbose ? Log4r::DEBUG : Log4r::INFO
       @log
     end

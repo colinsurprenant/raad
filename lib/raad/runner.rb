@@ -5,8 +5,7 @@ module Raad
     include Daemonizable
 
     SECOND = 1
-    SOFT_STOP_TIMEOUT = 58 * SECOND
-    HARD_STOP_TIMEOUT = 60 * SECOND
+    STOP_TIMEOUT = 60 * SECOND
 
     attr_accessor :service, :pid_file, :options
 
@@ -47,17 +46,21 @@ module Raad
         options[:log_stdout] = !options[:daemonize]
       end
       @logger_options = {
-        :file => options.delete(:log_file),
-        :stdout => options.delete(:log_stdout),
-        :verbose => options.delete(:verbose),
+        :file => options.delete(:log_file) || Configuration.log_file,
+        :stdout => options.delete(:log_stdout) || Configuration.log_stdout,
+        :verbose => options.delete(:verbose) || Configuration.verbose,
+        :pattern => options.delete(:log_pattern) || Configuration.log_pattern,
       }
       @pid_file = options.delete(:pid_file) || "./#{@service_name}.pid"
+      @stop_timeout = (options.delete(:stop_timeout) || Configuration.stop_timeout || STOP_TIMEOUT).to_i
 
       # check for stop command, @pid_file must be set
       if options[:command] == 'stop'
         puts(">> Raad service wrapper v#{VERSION} stopping")
-        success = send_signal('TERM', HARD_STOP_TIMEOUT) # if not stopped afer HARD_STOP_TIMEOUT, SIGKILL will be sent
-        exit!(success)
+        # first send the TERM signal which will invoke the daemon wait_or_will method which will timeout after @stop_timeout
+        # if still not stopped afer @stop_timeout + 2, KILL -9 will be sent.
+        success = send_signal('TERM', @stop_timeout + 2) 
+        exit(success)
       end
 
       # setup logging
@@ -112,7 +115,7 @@ module Raad
 
     # try to do a timeout join periodically on the given thread. if the join succeed then the stop
     # sequence is successful and return true.
-    # Otherwise, on timeout if stop has beed signaled, wait a maximum of SOFT_STOP_TIMEOUT on the
+    # Otherwise, on timeout if stop has beed signaled, wait a maximum of @stop_timeout on the
     # thread and kill it if the timeout is reached and return false in that case.
     #
     # @return [Boolean] true if the thread normally terminated, false if a kill was necessary
@@ -122,9 +125,9 @@ module Raad
         if @stop_signaled
           # but if stop has been signalled, start "the final countdown" ♫
           try = 0; join = nil
-          while (try += 1) <= SOFT_STOP_TIMEOUT && join.nil? do
+          while (try += 1) <= @stop_timeout && join.nil? do
             join = thread.join(SECOND)
-            Logger.debug("waiting for service to stop #{try}/#{SOFT_STOP_TIMEOUT}") if join.nil?
+            Logger.debug("waiting for service to stop #{try}/#{@stop_timeout}") if join.nil?
           end
           if join.nil?
             Logger.error("stop timeout exhausted, killing service thread")
@@ -163,13 +166,15 @@ module Raad
 
         opts.on('-l', '--log FILE', "log to file (default: in console mode: no, daemonized: <service>.log)") { |file| @options[:log_file] = file }
         opts.on('-s', '--stdout', "log to stdout (default: in console mode: true, daemonized: false)") { |v| @options[:log_stdout] = v }
+        opts.on('-v', '--verbose', "enable verbose logging (default: #{@options[:verbose]})") { |v| @options[:verbose] = v }
+        opts.on('',  '--pattern PATTERN', "log4r formatter pattern,") { |v| @options[:log_pattern] = v }
 
         opts.on('-c', '--config FILE', "config file (default: ./config/<service>.rb)") { |v| @options[:config] = v }
         opts.on('-d', '--daemonize', "run daemonized in the background (default: #{@options[:daemonize]})") { |v| @options[:daemonize] = v }
         opts.on('-P', '--pid FILE', "pid file when daemonized (default: <service>.pid)") { |file| @options[:pid_file] = file }
         opts.on('-r', '--redirect FILE', "redirect stdout to FILE when daemonized (default: no)") { |v| @options[:redirect] = v }
         opts.on('-n', '--name NAME', "daemon process name (default: <service>)") { |v| @options[:name] = v }
-        opts.on('-v', '--verbose', "enable verbose logging (default: #{@options[:verbose]})") { |v| @options[:verbose] = v }
+        opts.on('', '--timeout SECONDS', "seconds to wait before force stopping the service (default: 60)") { |v| @options[:stop_timeout] = v }
 
         opts.on('-h', '--help', 'display help message') { show_options(opts) }
       end
