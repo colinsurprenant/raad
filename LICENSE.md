@@ -72,7 +72,7 @@ Authored by Colin Surprenant, [@colinsurprenant][twitter], [colin.surprenant@nee
 
 -------------------------------------------------------------------------------
 
-  Portions of this code are from the spoon project https://github.com/headius/spoon) and under the following license:
+  Portions of this code are from the Spoon project https://github.com/headius/spoon) and under the following license:
   
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.

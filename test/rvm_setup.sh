@@ -12,13 +12,15 @@ else
   exit 1
 fi
 
-jruby="jruby-1.6.4"
-
-for ruby in "ruby-1.8.7" "ree-1.8.7" "ruby-1.9.2" $jruby; do
-  rvm $ruby@raad; test/validate.sh
-done
-
-# jruby specific options
-for opts in "--1.8 --server" "--1.8 --client" "--1.9 --server" "--1.9 --client"; do
-  rvm $jruby@raad; test/validate.sh $opts
+for ruby in "ruby-1.8.7" "ree-1.8.7" "ruby-1.9.2" "jruby-1.6.4"; do
+  rvm use $ruby
+  if [ "$?" -ne "0" ]; then
+    rvm install $ruby
+    rvm use $ruby
+  fi
+  rvm gemset create raad
+  rvm use $ruby@raad
+  gem install rspec -v "~> 2.6.0" --no-ri --no-rdoc
+  gem install log4r -v "~> 1.1.9" --no-ri --no-rdoc
+  gem install rake -v "~> 0.9.2" --no-ri --no-rdoc
 done

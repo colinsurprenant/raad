@@ -167,14 +167,14 @@ module Raad
         opts.on('-l', '--log FILE', "log to file (default: in console mode: no, daemonized: <service>.log)") { |file| @options[:log_file] = file }
         opts.on('-s', '--stdout', "log to stdout (default: in console mode: true, daemonized: false)") { |v| @options[:log_stdout] = v }
         opts.on('-v', '--verbose', "enable verbose logging (default: #{@options[:verbose]})") { |v| @options[:verbose] = v }
-        opts.on('',  '--pattern PATTERN', "log4r formatter pattern,") { |v| @options[:log_pattern] = v }
+        opts.on('--pattern PATTERN', "log4r log formatter pattern") { |v| @options[:log_pattern] = v }
 
         opts.on('-c', '--config FILE', "config file (default: ./config/<service>.rb)") { |v| @options[:config] = v }
         opts.on('-d', '--daemonize', "run daemonized in the background (default: #{@options[:daemonize]})") { |v| @options[:daemonize] = v }
         opts.on('-P', '--pid FILE', "pid file when daemonized (default: <service>.pid)") { |file| @options[:pid_file] = file }
         opts.on('-r', '--redirect FILE', "redirect stdout to FILE when daemonized (default: no)") { |v| @options[:redirect] = v }
         opts.on('-n', '--name NAME', "daemon process name (default: <service>)") { |v| @options[:name] = v }
-        opts.on('', '--timeout SECONDS', "seconds to wait before force stopping the service (default: 60)") { |v| @options[:stop_timeout] = v }
+        opts.on('--timeout SECONDS', "seconds to wait before force stopping the service (default: 60)") { |v| @options[:stop_timeout] = v }
 
         opts.on('-h', '--help', 'display help message') { show_options(opts) }
       end
