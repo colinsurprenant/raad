@@ -2,13 +2,13 @@
 
 RUBY_PARAMS=$@
 if [[ $RUBY_PARAMS == "" ]]; then
-  RUBY_EXE="ruby"
+  RUBY="ruby"
 else
-  RUBY_EXE="ruby ${RUBY_PARAMS}"
+  RUBY="ruby ${RUBY_PARAMS}"
 fi
 
-version=`ruby -v`
-printf "using \"$RUBY_EXE\" $version\n"
+version=`$RUBY -v`
+printf "using \"$RUBY\" $version\n"
 
 validation_path="test/validation"
 output_path="${validation_path}/output"
@@ -48,7 +48,7 @@ rm -f ${output_path}/*
 
 TEST="test1-1"
 printf "$TEST "
-$RUBY_EXE ${validation_path}/test1.rb --pattern "%m" start >${output_path}/${TEST} 2>&1 &
+$RUBY ${validation_path}/test1.rb --pattern "%m" start >${output_path}/${TEST} 2>&1 &
 waitline ${TEST} "test1 running"
 kill -TERM $!
 wait $!
@@ -56,15 +56,15 @@ assert ${TEST}
 
 TEST="test1-2"
 printf "$TEST "
-$RUBY_EXE ${validation_path}/test1.rb --pattern "%m" -d -v -l "${output_path}/${TEST}-daemon" start >"${output_path}/${TEST}-exe" 2>&1
+$RUBY ${validation_path}/test1.rb --pattern "%m" -d -v -P "${output_path}/${TEST}.pid" -l "${output_path}/${TEST}-daemon" start >"${output_path}/${TEST}-exe" 2>&1
 waitline "${TEST}-daemon" "test1 running"
-$RUBY_EXE ${validation_path}/test1.rb stop >>"${output_path}/${TEST}-exe" 2>&1
+$RUBY ${validation_path}/test1.rb -P "${output_path}/${TEST}.pid" stop >>"${output_path}/${TEST}-exe" 2>&1
 waitline "${TEST}-daemon" ">> Raad service wrapper stopped"
 assert "${TEST}-daemon" "${TEST}-exe"
 
 TEST="test2-1"
 printf "$TEST "
-$RUBY_EXE ${validation_path}/test2.rb --pattern "%m" --timeout 2 start >${output_path}/${TEST} 2>&1 &
+$RUBY ${validation_path}/test2.rb --pattern "%m" --timeout 2 start >${output_path}/${TEST} 2>&1 &
 waitline ${TEST} "test2 running"
 kill -TERM $!
 wait $!
@@ -72,16 +72,16 @@ assert ${TEST}
 
 TEST="test2-2"
 printf "$TEST "
-$RUBY_EXE ${validation_path}/test2.rb --pattern "%m" --timeout 2 -d -l "${output_path}/${TEST}-daemon" start >"${output_path}/${TEST}-exe" 2>&1
+$RUBY ${validation_path}/test2.rb --pattern "%m" --timeout 2 -d -P "${output_path}/${TEST}.pid" -l "${output_path}/${TEST}-daemon" start >"${output_path}/${TEST}-exe" 2>&1
 waitline "${TEST}-daemon" "test2 running"
-$RUBY_EXE ${validation_path}/test2.rb --timeout 2 stop >>"${output_path}/${TEST}-exe" 2>&1
+$RUBY ${validation_path}/test2.rb --timeout 2 -P "${output_path}/${TEST}.pid" stop >>"${output_path}/${TEST}-exe" 2>&1
 waitline "${TEST}-daemon" ">> Raad service wrapper stopped"
 assert "${TEST}-daemon" "${TEST}-exe"
 
 TEST="test2-3"
 printf "$TEST "
-$RUBY_EXE ${validation_path}/test2.rb --pattern "%m" --timeout 5 -d -l "${output_path}/${TEST}-daemon" start >"${output_path}/${TEST}-exe" 2>&1
+$RUBY ${validation_path}/test2.rb --pattern "%m" --timeout 5 -d -P "${output_path}/${TEST}.pid" -l "${output_path}/${TEST}-daemon" start >"${output_path}/${TEST}-exe" 2>&1
 waitline "${TEST}-daemon" "test2 running"
-$RUBY_EXE ${validation_path}/test2.rb --timeout 2 stop >>"${output_path}/${TEST}-exe" 2>&1
+$RUBY ${validation_path}/test2.rb --timeout 2 -P "${output_path}/${TEST}.pid" stop >>"${output_path}/${TEST}-exe" 2>&1
 waitline "${TEST}-exe" ">> sending KILL signal to process"
 assert "${TEST}-daemon" "${TEST}-exe"
