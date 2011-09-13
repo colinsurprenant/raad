@@ -53,7 +53,7 @@ wrapped by Raad and daemonizable.
 ## Documentation
 
 ### Supported rubies and environments
-Raad has been tested on MRI 1.8.7, MRI 1.9.2, REE 1.8.7, JRuby 1.6.4 under OSX 10.6.8 and Linux 
+Raad has been tested on MRI 1.8.7, MRI 1.9.2, REE 1.8.7, JRuby 1.6.4 under OSX 10.6.8 and Linux Ubuntu 10.04
 
 
 ### Command line options
@@ -74,13 +74,13 @@ Raad has been tested on MRI 1.8.7, MRI 1.9.2, REE 1.8.7, JRuby 1.6.4 under OSX 1
         -h, --help                       display help message
 
 Note that the command line options will always override any config file settings if present.
-### Config file usage
-tbd.
-
-### Logging
+### Configuration and options
 tbd.
 
 ### Adding custom command line options
+tbd.
+
+### Logging
 tbd.
 
 ### Stop sequence details
@@ -88,24 +88,27 @@ tbd.
 
 ### Testing
 There are specs and a validation suite which ca be run in the current ruby environment:
+
 - rake spec
 - rake validation
 
 Also, specs and validations can be run in all currently tested Ruby environement. For this [RVM][rvm] is required and the following rubies must be installed: 
+
 - ruby-1.8.7
 - ree-1.8.7
 - ruby-1.9.2
 - jruby-1.6.4
 
-In each of these rubies, the gemset @raad containing log4r (~> 1.1.9) and rspec (~> 2.6.0) must be created.
+In each of these rubies, the gemset @raad containing log4r (~> 1.1.9), rake (~> 0.9.2) and rspec (~> 2.6.0) must be created.
 
 This RVM environment can be created/updated using:
+
 - rake rvm_setup
 
 To launch the tests for all rubies use:
+
 - rake specs
 - rake validations
-
 
 ## TODO
 - better doc

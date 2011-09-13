@@ -16,20 +16,20 @@ end
 
 desc "run specs for all rubies"
 task :specs do
-  sh "spec/spec_all.sh"
+  exec "spec/spec_all.sh"
 end
 
 desc "run validations in the current ruby env"
 task :validation  do
-  sh "test/validate.sh"
+  exec "test/validate.sh"
 end
 
 desc "run validations for all rubies"
 task :validations  do
-  sh "test/validate_all.sh"
+  exec "test/validate_all.sh"
 end
 
 desc "install all tested rubies under rvm"
 task :rvm_setup do
-  sh "test/rvm_setup.sh"
+  exec "test/rvm_setup.sh"
 end
