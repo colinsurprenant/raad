@@ -21,7 +21,8 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rubyforge"
 
   # Test dependencies
-  s.add_development_dependency "rspec", ["~> 2.5.0"]
+  s.add_development_dependency "rspec", ["~> 2.6.0"]
+  s.add_development_dependency "rake", ["~> 0.9.2"]
 
   s.add_runtime_dependency "log4r", ["~> 1.1.9"]
 end
