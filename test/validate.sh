@@ -35,6 +35,9 @@ function assert {
 
 
 function waitline {
+  while [[ ! -f ${output_path}/$1 ]]; do
+    sleep 1
+  done
   tail -f ${output_path}/$1 |
   while read line; do
     if [[ $line == *$2* ]]; then
