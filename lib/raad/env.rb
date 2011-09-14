@@ -13,13 +13,14 @@ module Raad
 
   # sets the current environment
   #
-  # @param [String or Symbol] env the environment [development|production|stage|test]
+  # @param [String or Symbol] env the environment
   def env=(env)
     case(env.to_s)
     when 'dev', 'development' then @env = :development
     when 'prod', 'production' then @env = :production
     when 'stage', 'staging' then @env = :stage
     when 'test' then @env = :test
+    else @env = env.to_sym
     end
   end
 
