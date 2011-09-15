@@ -56,7 +56,7 @@ module Raad
   #
   # @return [Boolean] true if runnig inside jruby
   def jruby?
-    defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
+    !!(defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby')
   end
 
   # absolute path of current interpreter

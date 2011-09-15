@@ -63,8 +63,10 @@ module Raad
   end
 
   at_exit do
-    if $!.nil? && $0 == Raad::Service.service_file
-      Service.run!
+    unless defined?($RAAD_NOT_RUN)
+      if $!.nil? && $0 == Raad::Service.service_file
+        Service.run!
+      end
     end
   end
 end
