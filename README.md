@@ -54,15 +54,18 @@ class SimpleDaemon
 end
 ```
  - run it in console mode, `^C` will stop it, calling the stop method
+
 ``` sh
 $ ruby simple_daemon.rb start
 ```
  - run it daemonized, by default `./simple_daemon.log` and `./simple_daemon.pid` will be created
+
 ``` sh
 $ ruby simple_daemon.rb -d start
 ```
 
  - stop daemon, removing `./simple_daemon.pid`
+
 ``` sh
 $ ruby simple_daemon.rb stop
 ```
@@ -85,16 +88,19 @@ There are two ways to know when your service has been instructed to stop:
 There are basically 3 ways to run execute your service:
 
  * start it in foreground console mode, useful for debugging, `^C` to execute the stop sequence
+
 ``` sh
 $ ruby your_service.rb start
 ```
 
  * start it as a detached, backgrounded daemon:
+
 ``` sh
 $ ruby your_service.rb -d start
 ```
 
  * stop the daemonized service by signaling it to execute the stop sequence
+
 ``` sh
 $ ruby your_service.rb stop
 ```
@@ -160,11 +166,13 @@ Also, specs and validations can be run in **all currently tested Ruby environeme
 In each of these rubies, the gemset @raad containing `log4r ~> 1.1.9`, `rake ~> 0.9.2` and `rspec ~> 2.6.0` must be created.
 
 This RVM environment can be created/updated using:
+
 ``` sh
 $ rake rvm_setup`
 ```
 
 To launch the tests for all rubies use:
+
 ``` sh
 $ rake specs
 ```
