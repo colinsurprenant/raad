@@ -1,8 +1,11 @@
 require 'rbconfig'
+require 'thread'
 
 module Raad
   
   @env = :development
+  @stopped = false
+  @stop_lock = Mutex.new
 
   # retrieves the current environment
   #
@@ -66,6 +69,20 @@ module Raad
     File.join(Config::CONFIG["bindir"], Config::CONFIG["RUBY_INSTALL_NAME"] + Config::CONFIG["EXEEXT"])
   end
 
-  module_function :env, :env=, :production?, :development?, :stage?, :test?, :jruby?, :ruby_path
+  # a request to stop the service has been received (or the #start method has returned and, if defined, the service #stop method has been called by Raad.
+  #
+  # @return [Boolean] true is the service has been stopped
+  def stopped?
+    @stop_lock.synchronize{@stopped}
+  end
+
+  # used internally to set the stopped flag
+  #
+  # @param [Boolean] state true to set the stopped flag
+  def stopped=(state)
+    @stop_lock.synchronize{@stopped = !!state}
+  end
+
+  module_function :env, :env=, :production?, :development?, :stage?, :test?, :jruby?, :ruby_path, :stopped?, :stopped=
 
 end
