@@ -168,7 +168,7 @@ In each of these rubies, the gemset @raad containing `log4r ~> 1.1.9`, `rake ~> 
 This RVM environment can be created/updated using:
 
 ``` sh
-$ rake rvm_setup`
+$ rake rvm_setup
 ```
 
 To launch the tests for all rubies use:
