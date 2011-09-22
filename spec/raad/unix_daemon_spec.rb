@@ -168,28 +168,32 @@ describe 'UnixDaemon' do
     end
   end
 
+  def force_kill_and_remove_pid_file(pid)
+    puts(">> sending KILL signal to process #{pid}")
+    Process.kill("KILL", pid)
+    remove_pid_file
+    true
+  rescue Errno::ESRCH # No such process
+    puts(">> can't send KILL, no such process #{pid}")
+    remove_pid_file
+    false
+  end
+
   describe 'force_kill_and_remove_pid_file' do
 
     it 'should send KILL signal and terminate process' do
       @service.write_pid_file
-      Process.should_receive(:kill).with("KILL", Process.pid).once
+      Process.should_receive(:kill).with("KILL", 666).once
       $stdout.should_receive(:write).twice # mute trace
-      @service.force_kill_and_remove_pid_file.should be_true
-    end
-
-    it 'should remove pid file on invalid pid file' do
-      @service.remove_pid_file
-      $stdout.should_receive(:write).twice # mute trace
-      @service.should_receive(:remove_pid_file)
-      @service.force_kill_and_remove_pid_file.should be_false
+      @service.force_kill_and_remove_pid_file(666).should be_true
     end
 
     it 'should remove pid file on no such process exception' do
       @service.write_pid_file
       $stdout.should_receive(:write).exactly(4).times # mute trace
-      Process.should_receive(:kill).with("KILL", Process.pid).once.and_raise(Errno::ESRCH)
+      Process.should_receive(:kill).with("KILL", 666).once.and_raise(Errno::ESRCH)
       @service.should_receive(:remove_pid_file)
-      @service.force_kill_and_remove_pid_file.should be_false
+      @service.force_kill_and_remove_pid_file(666).should be_false
     end
   end
 end
