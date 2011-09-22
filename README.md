@@ -15,7 +15,9 @@ logging module and benefit easy log file output while daemonized.
 
 ### Gem
 
-`$ gem install raad`
+```sh
+$ gem install raad`
+```
 
 ### Bundler
 #### Latest from github
