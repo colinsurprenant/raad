@@ -62,7 +62,8 @@ When running your class file with the start parameter, Raad will call your class
 The **start** method **should not return** unless your service has completed its work or has been
 instructed to stop.
 
-There are two ways to know when your service has been instructed to stop: 
+There are two ways to know when your service has been instructed to stop:
+
  * the **stop** method of your class will be called if it is defined and
  * Raad.stopped? will return true
 
@@ -80,9 +81,9 @@ There are basically 3 ways to run execute your service:
 
     $ ruby your_service.rb stop
  
-In console mode Raad logging for level **:info** and up and stdout (puts) will be output in console mode by default.
+In **console mode** Raad logging for level **:info** and up and stdout (puts) will be output by default.
 
-In daemon mode, Raad logging for level **:info** and up will be output in your_service.log log file and the
+In **daemon mode**, Raad logging for level **:info** and up will be output in your_service.log log file and the
 your_service.pid pid file will be created.
 
 To toggle output of all logging levels simply use the verbose **-v** parameter.
