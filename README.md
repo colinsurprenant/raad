@@ -47,13 +47,16 @@ class SimpleDaemon
   end
 end
 ```
-run it in console mode, `^C` will stop it, calling the stop method
+ - run it in console mode, `^C` will stop it, calling the stop method
+
 `$ ruby simple_daemon.rb start`
 
-run it daemonized, by default `./simple_daemon.log` and `./simple_daemon.pid` will be created
+ - run it daemonized, by default `./simple_daemon.log` and `./simple_daemon.pid` will be created
+
 `$ ruby simple_daemon.rb -d start`
 
-stop daemon, removing `./simple_daemon.pid`
+ - stop daemon, removing `./simple_daemon.pid`
+
 `$ ruby simple_daemon.rb stop`
 
 
@@ -128,28 +131,28 @@ tbd.
 tbd.
 
 ### Testing
-There are specs and a validation suite which ca be run in the current ruby environment:
+There are specs and a validation suite which ca be run in your **current** ruby environment:
 
- - `rake spec`
- - `rake validation`
+ - `$ rake spec`
+ - `$ rake validation`
 
-Also, specs and validations can be run in all currently tested Ruby environement. For this [RVM][rvm] is required and the following rubies must be installed: 
+Also, specs and validations can be run in **all currently tested Ruby environement**. For this [RVM][rvm] is required and the following rubies must be installed: 
 
 - ruby-1.8.7
 - ree-1.8.7
 - ruby-1.9.2
 - jruby-1.6.4
 
-In each of these rubies, the gemset @raad containing log4r (~> 1.1.9), rake (~> 0.9.2) and rspec (~> 2.6.0) must be created.
+In each of these rubies, the gemset @raad containing `log4r ~> 1.1.9`, `rake ~> 0.9.2` and `rspec ~> 2.6.0` must be created.
 
 This RVM environment can be created/updated using:
 
-- rake rvm_setup
+- `$ rake rvm_setup`
 
 To launch the tests for all rubies use:
 
- - `rake specs`
- - `rake validations`
+ - `$ rake specs`
+ - `$ rake validations`
 
 ## TODO
 - better doc
