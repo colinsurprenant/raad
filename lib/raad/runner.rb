@@ -1,4 +1,5 @@
 require 'optparse'
+require 'timeout'
 
 module Raad
   class Runner
@@ -58,8 +59,8 @@ module Raad
       if options[:command] == 'stop'
         puts(">> Raad service wrapper v#{VERSION} stopping")
         # first send the TERM signal which will invoke the daemon wait_or_will method which will timeout after @stop_timeout
-        # if still not stopped afer @stop_timeout + 2, KILL -9 will be sent.
-        success = send_signal('TERM', @stop_timeout + 2) 
+        # if still not stopped afer @stop_timeout + 2 seconds, KILL -9 will be sent.
+        success = send_signal('TERM', @stop_timeout + (2 * SECOND)) 
         exit(success)
       end
 
@@ -104,13 +105,17 @@ module Raad
         stop_service unless @stop_signaled # don't stop twice if already called from the signal handler
       end
 
+      result = wait_or_kill(service_thread)
+      # if not daemonized start a sentinel thread, if still alive after 2 seconds, do arakiri
+      Thread.new{sleep(2 * SECOND);  Process.kill(:KILL, Process.pid)} unless options[:daemonize]
       # use exit and not exit! to make sure the at_exit hooks are called, like the pid cleanup, etc.
-      exit(wait_or_kill(service_thread))
+      exit(result)
     end
 
     def stop_service
       Logger.info("stopping #{@service_name} service")
       service.stop if service.respond_to?(:stop)
+      Raad.stopped = true
     end
 
     # try to do a timeout join periodically on the given thread. if the join succeed then the stop
