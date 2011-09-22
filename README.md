@@ -15,7 +15,7 @@ logging module and benefit easy log file output while daemonized.
 
 ### Gem
 
-    $ gem install raad
+`$ gem install raad`
 
 ### Bundler
 #### Latest from github
@@ -46,16 +46,16 @@ class SimpleDaemon
     Raad::Logger.info("simple_daemon stopped")
   end
 end
-
-run it in console mode, ^C will stop it, calling the stop method
-$ ruby simple_daemon.rb start
-
-run it daemonized, by default ./simple_daemon.log and ./simple_daemon.pid will be created
-$ ruby simple_daemon.rb -d start
-
-stop daemon, removing ./simple_daemon.pid
-$ ruby simple_daemon.rb stop 
 ```
+run it in console mode, `^C` will stop it, calling the stop method
+`$ ruby simple_daemon.rb start`
+
+run it daemonized, by default `./simple_daemon.log` and `./simple_daemon.pid` will be created
+`$ ruby simple_daemon.rb -d start`
+
+stop daemon, removing `./simple_daemon.pid`
+`$ ruby simple_daemon.rb stop`
+
 
 ## Documentation
 
@@ -86,7 +86,7 @@ There are basically 3 ways to run execute your service:
 
 `$ ruby your_service.rb stop`
  
-In **console mode** Raad logging for level `:info` and up and stdout (puts) will be output by default.
+In **console mode** Raad logging for level `:info` and up and stdout, ie `puts`, will be displayed by default.
 
 In **daemon mode**, Raad logging for level `:info` and up will be output in `your_service.log` log file and the
 `your_service.pid`pid file will be created.
@@ -130,8 +130,8 @@ tbd.
 ### Testing
 There are specs and a validation suite which ca be run in the current ruby environment:
 
-`rake spec`
-`rake validation`
+ - `rake spec`
+ - `rake validation`
 
 Also, specs and validations can be run in all currently tested Ruby environement. For this [RVM][rvm] is required and the following rubies must be installed: 
 
@@ -148,8 +148,8 @@ This RVM environment can be created/updated using:
 
 To launch the tests for all rubies use:
 
-`rake specs`
-`rake validations`
+ - `rake specs`
+ - `rake validations`
 
 ## TODO
 - better doc
