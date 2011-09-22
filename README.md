@@ -3,90 +3,95 @@
 Raad - Ruby as a daemon lightweight service wrapper.
 
 Raad is a non-intrusive, lightweight, simple Ruby daemon wrapper. Basically any class which implements
-the start and stop methods, can be used seamlessly as a daemon or a normal console app.
+the `start` and `stop` methods, can be used seamlessly as a daemon or a normal console app.
 
-Raad provides the same functionnality, **including deamonizing** with both MRI Ruby or **JRuby**, without
+Raad **deamonizing** will work the same way for both MRI Ruby and **JRuby**, without
 modification in your code.
 
-Raad provides daemon control using the start/stop commands. Your code can optionnally use the Raad
-logging module. 
+Raad provides basic daemon control using the start/stop commands. Your code can also use the Raad
+logging module and benefit easy log file output while daemonized.
 
 ## Installation
 
 ### Gem
-gem install raad
+
+    $ gem install raad
 
 ### Bundler
 #### Latest from github
-gem "raad", :git => "git://github.com/praized/raad.git", :branch => "master"
+
+    gem "raad", :git => "git://github.com/praized/raad.git", :branch => "master"
 
 #### Released gem
-gem "raad", "~> 0.4.0"
+
+    gem "raad", "~> 0.4.0"
 
 ## Example
-Create a class with a start and a stop method. Just by requiring 'raad', your class will be 
+Create a class with a `start` and a `stop` method. Just by requiring 'raad', your class will be 
 wrapped by Raad and become **daemonizable**.
 
-    require 'rubygems'
-    require 'raad'
+```ruby
+require 'rubygems'
+require 'raad'
 
-    class SimpleDaemon
-      def start
-        while !Raad.stopped?
-          Raad::Logger.info("simple_daemon running")
-          sleep(1)
-        end
-      end
-
-      def stop
-        Raad::Logger.info("simple_daemon stopped")
-      end
+class SimpleDaemon
+  def start
+    while !Raad.stopped?
+      Raad::Logger.info("simple_daemon running")
+      sleep(1)
     end
+  end
 
-    run it in console mode, ^C will stop it, calling the stop method
-    $ ruby simple_daemon.rb start
+  def stop
+    Raad::Logger.info("simple_daemon stopped")
+  end
+end
 
-    run it daemonized, by default ./simple_daemon.log and ./simple_daemon.pid will be created
-    $ ruby simple_daemon.rb -d start
+run it in console mode, ^C will stop it, calling the stop method
+$ ruby simple_daemon.rb start
 
-    stop daemon, removing ./simple_daemon.pid
-    $ ruby simple_daemon.rb stop 
+run it daemonized, by default ./simple_daemon.log and ./simple_daemon.pid will be created
+$ ruby simple_daemon.rb -d start
+
+stop daemon, removing ./simple_daemon.pid
+$ ruby simple_daemon.rb stop 
+```
 
 ## Documentation
 
 ### Introduction
 
 By requiring 'raad' in your class, it will automagically be wrapped by the Raad bootstrap code.
-When running your class file with the start parameter, Raad will call your class **start** method.
+When running your class file with the `start` parameter, Raad will call your class `start` method.
 
-The **start** method **should not return** unless your service has completed its work or has been
+The `start` method **should not return** unless your service has completed its work or has been
 instructed to stop.
 
 There are two ways to know when your service has been instructed to stop:
 
- * the **stop** method of your class will be called if it is defined and
- * Raad.stopped? will return true
+ * the `stop` method of your class will be called if it is defined
+ * `Raad.stopped?` will return true
 
 There are basically 3 ways to run execute your service:
 
- * start it in foreground console mode, useful for debugging, ^C to execute the stop sequence
+ * start it in foreground console mode, useful for debugging, `^C` to execute the stop sequence
 
-    $ ruby your_service.rb start
+`$ ruby your_service.rb start`
 
  * start it as a detached, backgrounded daemon:
  
-    $ ruby your_service.rb -d start
+`$ ruby your_service.rb -d start`
 
  * stop the daemonized service by signaling it to execute the stop sequence
 
-    $ ruby your_service.rb stop
+`$ ruby your_service.rb stop`
  
-In **console mode** Raad logging for level **:info** and up and stdout (puts) will be output by default.
+In **console mode** Raad logging for level `:info` and up and stdout (puts) will be output by default.
 
-In **daemon mode**, Raad logging for level **:info** and up will be output in your_service.log log file and the
-your_service.pid pid file will be created.
+In **daemon mode**, Raad logging for level `:info` and up will be output in `your_service.log` log file and the
+`your_service.pid`pid file will be created.
 
-To toggle output of all logging levels simply use the verbose **-v** parameter.
+To toggle output of all logging levels simply use the verbose `-v` parameter.
 
 ### Supported rubies and environments
 Raad has been tested on MRI 1.8.7, MRI 1.9.2, REE 1.8.7, JRuby 1.6.4 under OSX 10.6.8 and Linux Ubuntu 10.04
@@ -125,8 +130,8 @@ tbd.
 ### Testing
 There are specs and a validation suite which ca be run in the current ruby environment:
 
-- rake spec
-- rake validation
+`rake spec`
+`rake validation`
 
 Also, specs and validations can be run in all currently tested Ruby environement. For this [RVM][rvm] is required and the following rubies must be installed: 
 
@@ -143,8 +148,8 @@ This RVM environment can be created/updated using:
 
 To launch the tests for all rubies use:
 
-- rake specs
-- rake validations
+`rake specs`
+`rake validations`
 
 ## TODO
 - better doc
