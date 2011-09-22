@@ -15,24 +15,28 @@ logging module and benefit easy log file output while daemonized.
 
 ### Gem
 
-```sh
-$ gem install raad`
+``` sh
+$ gem install raad
 ```
 
 ### Bundler
 #### Latest from github
 
-    gem "raad", :git => "git://github.com/praized/raad.git", :branch => "master"
+``` sh
+gem "raad", :git => "git://github.com/praized/raad.git", :branch => "master"
+```
 
 #### Released gem
 
-    gem "raad", "~> 0.4.0"
+``` bash
+gem "raad", "~> 0.4.0"
+```
 
 ## Example
 Create a class with a `start` and a `stop` method. Just by requiring 'raad', your class will be 
 wrapped by Raad and become **daemonizable**.
 
-```ruby
+``` ruby
 require 'rubygems'
 require 'raad'
 
@@ -50,17 +54,18 @@ class SimpleDaemon
 end
 ```
  - run it in console mode, `^C` will stop it, calling the stop method
-
-`$ ruby simple_daemon.rb start`
-
+``` sh
+$ ruby simple_daemon.rb start
+```
  - run it daemonized, by default `./simple_daemon.log` and `./simple_daemon.pid` will be created
-
-`$ ruby simple_daemon.rb -d start`
+``` sh
+$ ruby simple_daemon.rb -d start
+```
 
  - stop daemon, removing `./simple_daemon.pid`
-
-`$ ruby simple_daemon.rb stop`
-
+``` sh
+$ ruby simple_daemon.rb stop
+```
 
 ## Documentation
 
@@ -80,17 +85,20 @@ There are two ways to know when your service has been instructed to stop:
 There are basically 3 ways to run execute your service:
 
  * start it in foreground console mode, useful for debugging, `^C` to execute the stop sequence
-
-`$ ruby your_service.rb start`
+``` sh
+$ ruby your_service.rb start
+```
 
  * start it as a detached, backgrounded daemon:
- 
-`$ ruby your_service.rb -d start`
+``` sh
+$ ruby your_service.rb -d start
+```
 
  * stop the daemonized service by signaling it to execute the stop sequence
+``` sh
+$ ruby your_service.rb stop
+```
 
-`$ ruby your_service.rb stop`
- 
 In **console mode** Raad logging for level `:info` and up and stdout, ie `puts`, will be displayed by default.
 
 In **daemon mode**, Raad logging for level `:info` and up will be output in `your_service.log` log file and the
@@ -135,8 +143,12 @@ tbd.
 ### Testing
 There are specs and a validation suite which ca be run in your **current** ruby environment:
 
- - `$ rake spec`
- - `$ rake validation`
+``` sh
+$ rake spec
+```
+``` sh
+$ rake validation
+```
 
 Also, specs and validations can be run in **all currently tested Ruby environement**. For this [RVM][rvm] is required and the following rubies must be installed: 
 
@@ -148,13 +160,17 @@ Also, specs and validations can be run in **all currently tested Ruby environeme
 In each of these rubies, the gemset @raad containing `log4r ~> 1.1.9`, `rake ~> 0.9.2` and `rspec ~> 2.6.0` must be created.
 
 This RVM environment can be created/updated using:
-
-- `$ rake rvm_setup`
+``` sh
+$ rake rvm_setup`
+```
 
 To launch the tests for all rubies use:
-
- - `$ rake specs`
- - `$ rake validations`
+``` sh
+$ rake specs
+```
+``` sh
+$ rake validations
+```
 
 ## TODO
 - better doc
