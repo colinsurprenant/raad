@@ -1,5 +1,6 @@
 require 'optparse'
 require 'timeout'
+require 'thread'
 
 module Raad
   class Runner
@@ -30,6 +31,7 @@ module Raad
       @logger_options = nil
       @pid_file = nil
 
+      @stop_lock = Mutex.new
       @stop_signaled = false
     end
 
@@ -93,16 +95,14 @@ module Raad
       end
 
       # do not trap :QUIT because its not supported in jruby
-      [:INT, :TERM].each do |sig|
-        SignalTrampoline.trap(sig) {@stop_signaled = true; stop_service}
-      end
+      [:INT, :TERM].each{|sig| SignalTrampoline.trap(sig) {stop_service}}
 
       # launch the service thread and call start. we expect start not to return
       # unless it is done or has been stopped.
       service_thread = Thread.new do
         Thread.current.abort_on_exception = true
         service.start
-        stop_service unless @stop_signaled # don't stop twice if already called from the signal handler
+        stop_service 
       end
 
       result = wait_or_kill(service_thread)
@@ -113,6 +113,8 @@ module Raad
     end
 
     def stop_service
+      return if @stop_lock.synchronize{s = @stop_signaled; @stop_signaled = true; s}
+      
       Logger.info("stopping #{@service_name} service")
       service.stop if service.respond_to?(:stop)
       Raad.stopped = true
@@ -127,7 +129,7 @@ module Raad
     def wait_or_kill(thread)
       while thread.join(SECOND).nil?
         # the join has timed out, thread is still buzzy.
-        if @stop_signaled
+        if @stop_lock.synchronize{@stop_signaled}
           # but if stop has been signalled, start "the final countdown" ♫
           try = 0; join = nil
           while (try += 1) <= @stop_timeout && join.nil? do
