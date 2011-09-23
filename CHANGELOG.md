@@ -14,6 +14,6 @@
 - tested on MRI 1.8.7 & 1.9.2, REE 1.8.7, JRuby 1.6.4 under OSX 10.6.8 and Linux Ubuntu 10.04
 
 # 0.4.1, 09-22-2011
-- allow arbitrary environment name
+- issue #1, allow arbitrary environment name, https://github.com/praized/raad/issues/1
+- issue #3, avoid calling stop multiple times,  https://github.com/praized/raad/issues/3
 - added Raad.stopped?
-- avoid calling stop multiple times, https://github.com/praized/raad/issues/3
