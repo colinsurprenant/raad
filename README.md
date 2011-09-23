@@ -1,4 +1,4 @@
-# Raad v0.4.0
+# Raad v0.4.1
 
 Raad - Ruby as a daemon lightweight service wrapper.
 
@@ -29,7 +29,7 @@ gem "raad", :git => "git://github.com/praized/raad.git", :branch => "master"
 #### Released gem
 
 ``` bash
-gem "raad", "~> 0.4.0"
+gem "raad", "~> 0.4.1"
 ```
 
 ## Example
