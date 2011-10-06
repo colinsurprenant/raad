@@ -160,10 +160,7 @@ if Raad.production?
 end
 ```
 
-### Configuration and options
-tbd.
-
-### Adding custom command line options
+### Custom command line options
 It is possible to add **custom** command line options to your service, in addition to Raad own command line options. To handle custom command line options simply define a `options_parser` method in your service class. This method will receive a [OptionParser](http://apidock.com/ruby/OptionParser) object in parameter with which you can handle your options and must return this OptionParser object back.
 
 Example:
@@ -203,8 +200,24 @@ Your service options:
     -b, --boption PARAM              some b option parameter
 ```
 
-### Logging
+### Configuration and options
 tbd.
+
+### Logging
+Raad uses Log4r for logging and provides hooks for logging in your service. Here's an example of how to use Raad logging:
+
+``` ruby
+  Raad::Logger.debug("this is a message with level DEBUG")
+  Raad::Logger.info("this is a message with level INFO")
+  Raad::Logger.warn("this is a message with level WARN")
+  Raad::Logger.error("this is a message with level ERROR")
+  Raad::Logger.fatal("this is a message with level FATAL")
+```
+
+ * By default, Raad will output log messages of level `INFO` **and higher**.
+ * If the `-v, --verbose` command line option is used, Raad will output **all** log messages (level `DEBUG` **and higher**).
+
+Alternatively, the log output level can be set in your service using the `Raad::Logger.level=` method. The valid levels parameter are `:debug`, `:info`, `:warn` and `:error`.
 
 ### Stop sequence details
 tbd.
