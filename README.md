@@ -164,7 +164,7 @@ end
 tbd.
 
 ### Adding custom command line options
-It is possible to add **custom** command line options to your service, in addition to Raad own command line options. To handle custom command line option simply define a `options_parser` method in your service class. This method will receive a [OptionParser](http://apidock.com/ruby/OptionParser) object in parameter with which you can handle your options and must return this OptionParser object back.
+It is possible to add **custom** command line options to your service, in addition to Raad own command line options. To handle custom command line options simply define a `options_parser` method in your service class. This method will receive a [OptionParser](http://apidock.com/ruby/OptionParser) object in parameter with which you can handle your options and must return this OptionParser object back.
 
 Example:
 
