@@ -134,11 +134,74 @@ Raad has been tested on MRI 1.8.7, MRI 1.9.2, REE 1.8.7, JRuby 1.6.4 under OSX 1
         -h, --help                       display help message
 
 Note that the command line options will always override any config file settings if present.
+
+#### -e, --environment NAME
+Raad provides a way to pass an **arbritary** environment name on the command line. This environment name can later be retrieved in your code using the following methods:
+
+ * `Raad.env` will return the **symbolized** environment name passed on the command line.
+ * `Raad.test?` will return `true` if the enviroment name passed on the command line was `test`.
+ * `Raad.development?` will return `true` if the enviroment name passed on the command line was `development` or `dev`.
+ * `Raad.stage?` will return `true` if the enviroment name passed on the command line was `stage` or `staging`.
+ * `Raad.production?` will return `true` if the enviroment name passed on the command line was `production` or `prod`.
+
+Example:
+
+``` sh
+$ ruby your_service.rb -e foobar start
+```
+
+``` ruby
+if Raad.env == :foobar
+  # do foobar stuff
+end
+
+if Raad.production?
+  # never get here
+end
+```
+
 ### Configuration and options
 tbd.
 
 ### Adding custom command line options
-tbd.
+It is possible to add **custom** command line options to your service, in addition to Raad own command line options. To handle custom command line option simply define a `options_parser` method in your service class. This method will receive a [OptionParser](http://apidock.com/ruby/OptionParser) object in parameter with which you can handle your options and must return this OptionParser object back.
+
+Example:
+
+``` ruby
+def options_parser(opts)
+  opts.separator "Your service options:"
+
+  opts.on('-a', '--aoption PARAM', "some a option parameter") { |val| @options[:aoption] = val }
+  opts.on('-b', '--boption PARAM', "some b option parameter") { |val| @options[:boption] = val }
+
+  opts
+end
+```
+
+``` sh
+$ ruby your_service.rb -h
+
+usage: ruby <service>.rb [options] start|stop
+
+Raad common options:
+    -e, --environment NAME           set the execution environment (default: development)
+    -l, --log FILE                   log to file (default: in console mode: no, daemonized: <service>.log)
+    -s, --stdout                     log to stdout (default: in console mode: true, daemonized: false)
+    -v, --verbose                    enable verbose logging (default: false)
+        --pattern PATTERN            log4r log formatter pattern
+    -c, --config FILE                config file (default: ./config/<service>.rb)
+    -d, --daemonize                  run daemonized in the background (default: false)
+    -P, --pid FILE                   pid file when daemonized (default: <service>.pid)
+    -r, --redirect FILE              redirect stdout to FILE when daemonized (default: no)
+    -n, --name NAME                  daemon process name (default: <service>)
+        --timeout SECONDS            seconds to wait before force stopping the service (default: 60)
+    -h, --help                       display help message
+
+Your service options:
+    -a, --aoption PARAM              some a option parameter
+    -b, --boption PARAM              some b option parameter
+```
 
 ### Logging
 tbd.
