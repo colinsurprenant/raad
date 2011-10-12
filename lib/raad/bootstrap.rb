@@ -40,11 +40,8 @@ module Raad
     #
     # @return [Nil]
     def self.run!
-      file = File.basename(service_file, '.rb')
-      service = Object.module_eval(camel_case(file)).new
-
-      runner = Runner.new(ARGV, service)
-      runner.run
+      service_class = Object.module_eval(camel_case(File.basename(service_file, '.rb')))
+      Runner.new(ARGV, service_class).run
     end
 
     private

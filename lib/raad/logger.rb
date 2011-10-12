@@ -38,7 +38,6 @@ module Raad
     #
     # @param log [Logger] The logger to add file logging too
     # @param log_format [Log4r::Formatter] The log format to use
-    # @return [Nil]
     def setup_file_logger(log, log_format, file)
       FileUtils.mkdir_p(File.dirname(file))
 
@@ -53,7 +52,6 @@ module Raad
     #
     # @param log [Logger] The logger to add stdout logging too
     # @param log_format [Log4r::Formatter] The log format to use
-    # @return [Nil]
     def setup_stdout_logger(log, log_format)
       @log.add(Log4r::StdoutOutputter.new('console', :formatter => log_format))
     end

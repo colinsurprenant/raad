@@ -5,14 +5,15 @@ require 'raad'
 class SimpleDaemon
 
   def start
+    Raad::Logger.debug("SimpleDaemon start")
     while !Raad.stopped?
-      Raad::Logger.info("simple_daemon running")
+      Raad::Logger.info("SimpleDaemon running")
       sleep(1)
     end
   end
 
   def stop
-    Raad::Logger.info("simple_daemon stopped")
+    Raad::Logger.debug("SimpleDaemon stop")
   end
 
 end

@@ -1,5 +1,4 @@
-# Raad v0.4.1
-
+# Raad v0.5.0
 Raad - Ruby as a daemon lightweight service wrapper.
 
 Raad is a non-intrusive, lightweight, simple Ruby daemon wrapper. Basically any class which implements
@@ -14,22 +13,20 @@ logging module and benefit easy log file output while daemonized.
 ## Installation
 
 ### Gem
-
 ``` sh
 $ gem install raad
 ```
 
 ### Bundler
-#### Latest from github
 
+#### Latest from github
 ``` sh
 gem "raad", :git => "git://github.com/praized/raad.git", :branch => "master"
 ```
 
 #### Released gem
-
 ``` bash
-gem "raad", "~> 0.4.1"
+gem "raad", "~> 0.5.0"
 ```
 
 ## Example
@@ -42,14 +39,15 @@ require 'raad'
 
 class SimpleDaemon
   def start
+    Raad::Logger.debug("SimpleDaemon start")
     while !Raad.stopped?
-      Raad::Logger.info("simple_daemon running")
+      Raad::Logger.info("SimpleDaemon running")
       sleep(1)
     end
   end
 
   def stop
-    Raad::Logger.info("simple_daemon stopped")
+    Raad::Logger.debug("SimpleDaemon stop")
   end
 end
 ```
@@ -87,7 +85,7 @@ There are two ways to know when your service has been instructed to stop:
 
 There are basically 3 ways to run execute your service:
 
- * start it in foreground console mode, useful for debugging, `^C` to execute the stop sequence
+ * start it in foreground console mode, useful for debugging, `^C` to trigger the stop sequence
 
 ``` sh
 $ ruby your_service.rb start
@@ -161,19 +159,32 @@ end
 ```
 
 ### Custom command line options
-It is possible to add **custom** command line options to your service, in addition to Raad own command line options. To handle custom command line options simply define a `options_parser` method in your service class. This method will receive a [OptionParser](http://apidock.com/ruby/OptionParser) object in parameter with which you can handle your options and must return this OptionParser object back.
+It is possible to add **custom** command line options to your service, in addition to Raad own command line options. To handle custom command line options simply define a `self.options_parser` **class method** in your service class. This method will be passed a [OptionParser](http://apidock.com/ruby/OptionParser) object into which you can add your rules plus also a Hash to set the parsed options values. The OptionParser object must be returned.
+
+Check complete example file [examples/custom_options.rb](https://github.com/praized/raad/blob/master/examples/custom_options.rb)
 
 Example:
 
 ``` ruby
-def options_parser(opts)
-  opts.separator "Your service options:"
+# options_parser must be a class method 
+#
+# @param raad_parser [OptionParser] raad options parser to which custom options rules can be added
+# @param parsed_options [Hash] set parsing results into this hash. retrieve it later in your code using Raad.custom_options
+# @return [OptionParser] the modified options parser must be returned
+def  self.options_parser(raad_parser, parsed_options)
+  raad_parser.separator "Your service options:"
 
-  opts.on('-a', '--aoption PARAM', "some a option parameter") { |val| @options[:aoption] = val }
-  opts.on('-b', '--boption PARAM', "some b option parameter") { |val| @options[:boption] = val }
+  raad_parser.on('-a', '--aoption PARAM', "some a option parameter") { |val| parsed_options[:aoption] = val }
+  raad_parser.on('-b', '--boption PARAM', "some b option parameter") { |val| parsed_options[:boption] = val }
 
-  opts
+  raad_parser
 end
+```
+
+The parsed options values can later be retrieved in your code using `Raad.custom_options` which will hold the Hash as set in your `options_parser` class method.
+
+``` ruby
+do_this if Raad.custom_options[:aoption] == 'a option parameter value'
 ```
 
 ``` sh

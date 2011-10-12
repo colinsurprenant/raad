@@ -4,6 +4,7 @@ require 'thread'
 module Raad
   
   @env = :development
+  @custom_options = {}
   @stopped = false
   @stop_lock = Mutex.new
 
@@ -83,6 +84,13 @@ module Raad
     @stop_lock.synchronize{@stopped = !!state}
   end
 
-  module_function :env, :env=, :production?, :development?, :stage?, :test?, :jruby?, :ruby_path, :stopped?, :stopped=
+  # returns the custom options hash set in the service options_parser class method
+  #
+  # @return [Hash] custom options hash
+  def custom_options
+    @custom_options
+  end
+
+  module_function :env, :env=, :production?, :development?, :stage?, :test?, :jruby?, :ruby_path, :stopped?, :stopped=, :custom_options
 
 end
