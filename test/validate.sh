@@ -15,6 +15,7 @@ output_path="${validation_path}/output"
 if [ ! -d "$output_path" ]; then
   mkdir -p $output_path
 fi
+global_result=0
 
 function assert {
   result=0
@@ -24,6 +25,7 @@ function assert {
       printf "failed, $p diff:\n"
       printf "$d\n"
       result=1
+      global_result=1
     fi
   done
       
@@ -88,3 +90,5 @@ waitline "${TEST}-daemon" "test2 running"
 $RUBY ${validation_path}/test2.rb --timeout 2 -P "${output_path}/${TEST}.pid" stop >>"${output_path}/${TEST}-exe" 2>&1
 waitline "${TEST}-exe" ">> sending KILL signal to process"
 assert "${TEST}-daemon" "${TEST}-exe"
+
+exit $global_result

@@ -1,7 +1,7 @@
 require 'rake'
 require "rubygems"
 
-task :default => :spec
+task :default => :test
 
 begin
   require 'rspec/core/rake_task'
@@ -32,4 +32,9 @@ end
 desc "install all tested rubies under rvm"
 task :rvm_setup do
   exec "test/rvm_setup.sh"
+end
+
+desc "perform specs and validation"
+task :test => [:spec] do
+  exec "test/validate.sh"
 end
