@@ -136,10 +136,10 @@ describe 'UnixDaemon' do
     it 'should send signal and terminate process' do
       @service.write_pid_file
       t = Thread.new{Thread.stop}
-      Kernel.trap(:USR1) {Thread.new{t.run}}
+      Kernel.trap(:USR2) {Thread.new{t.run}}
       Process.should_receive(:running?).once.and_return(false)
       $stdout.should_receive(:write).twice # mute trace
-      @service.send_signal(:USR1, 5).should be_true
+      @service.send_signal(:USR2, 5).should be_true
       Timeout.timeout(5) {t.join}
     end
 
@@ -148,7 +148,7 @@ describe 'UnixDaemon' do
       Process.should_receive(:kill).and_raise(Timeout::Error)
       @service.should_receive(:force_kill_and_remove_pid_file).and_return(true)
       $stdout.should_receive(:write).twice # mute trace
-      @service.send_signal(:USR1, 5).should be_true
+      @service.send_signal(:USR2, 5).should be_true
     end
 
     it 'should force kill on Interrupt exception' do
@@ -156,7 +156,7 @@ describe 'UnixDaemon' do
       Process.should_receive(:kill).and_raise(Interrupt)
       @service.should_receive(:force_kill_and_remove_pid_file).and_return(true)
       $stdout.should_receive(:write).twice # mute trace
-      @service.send_signal(:USR1, 5).should be_true
+      @service.send_signal(:USR2, 5).should be_true
     end
 
     it 'should remove pid file on Errno::ESRCH exception' do
@@ -164,7 +164,7 @@ describe 'UnixDaemon' do
       Process.should_receive(:kill).and_raise(Errno::ESRCH)
       $stdout.should_receive(:write).exactly(4).times # mute trace
       @service.should_receive(:remove_pid_file)
-      @service.send_signal(:USR1, 5).should be_false
+      @service.send_signal(:USR2, 5).should be_false
     end
   end
 
