@@ -1,4 +1,7 @@
 # Raad v0.5.0
+
+[![build status](https://secure.travis-ci.org/praized/raad.png)](http://travis-ci.org/praized/raad)
+
 Raad - Ruby as a daemon lightweight service wrapper.
 
 Raad is a non-intrusive, lightweight, simple Ruby daemon wrapper. Basically any class which implements
