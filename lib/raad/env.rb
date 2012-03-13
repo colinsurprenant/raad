@@ -70,6 +70,20 @@ module Raad
     File.join(Config::CONFIG["bindir"], Config::CONFIG["RUBY_INSTALL_NAME"] + Config::CONFIG["EXEEXT"])
   end
 
+  # ruby interpreter command line options
+  #
+  # @return [Array] command line options list
+  def ruby_options
+    @ruby_options ||= []
+  end
+
+  # set ruby interpreter command line options
+  #
+  # @param [String] options_str space separated options list
+  def ruby_options=(options_str)
+    @ruby_options = options_str.split
+  end
+
   # a request to stop the service has been received (or the #start method has returned and, if defined, the service #stop method has been called by Raad.
   #
   # @return [Boolean] true is the service has been stopped
@@ -91,6 +105,6 @@ module Raad
     @custom_options
   end
 
-  module_function :env, :env=, :production?, :development?, :stage?, :test?, :jruby?, :ruby_path, :stopped?, :stopped=, :custom_options
+  module_function :env, :env=, :production?, :development?, :stage?, :test?, :jruby?, :ruby_path, :ruby_options, :ruby_options=, :stopped?, :stopped=, :custom_options
 
 end

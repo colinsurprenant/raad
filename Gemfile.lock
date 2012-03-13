@@ -1,3 +1,9 @@
+PATH
+  remote: .
+  specs:
+    raad (0.5.0)
+      log4r (~> 1.1.9)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -15,8 +21,9 @@ GEM
 
 PLATFORMS
   java
+  ruby
 
 DEPENDENCIES
-  log4r (~> 1.1.9)
-  rake (~> 0.9.2.2)
+  raad!
+  rake (~> 0.9.2)
   rspec (~> 2.8.0)

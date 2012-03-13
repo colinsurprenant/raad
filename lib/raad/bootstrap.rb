@@ -41,6 +41,10 @@ module Raad
     # @return [Nil]
     def self.run!
       service_class = Object.module_eval(camel_case(File.basename(service_file, '.rb')))
+      # puts("ARGV=#{ARGV.inspect}")
+      # puts("$0=#{$0.inspect}")
+      # puts("$*=#{$*.inspect}")
+      # puts("ENV=#{ENV.inspect}")
       Runner.new(ARGV, service_class).run
     end
 

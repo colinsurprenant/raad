@@ -33,8 +33,10 @@ module Daemonizable
     if Raad.jruby?
       # in jruby the process is to posix-spawn a new process and re execute ourself using Spoon.
       # swap command 'start' for 'post_fork' to signal the second exec
-      spawn_argv = argv.map{|arg| arg == 'start' ? 'post_fork' : arg}
-      Spoon.spawnp(Raad.ruby_path, $0, *spawn_argv)
+      spanw_options = [Raad.ruby_path].concat(Raad.ruby_options)
+      spanw_options << $0
+      spanw_options.concat(argv.map{|arg| arg == 'start' ? 'post_fork' : arg})
+      Spoon.spawnp(*spanw_options)
     else
       # do the double fork dance
       Process.fork do

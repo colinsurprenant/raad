@@ -75,7 +75,9 @@ describe 'UnixDaemon' do
     it "should swap start for post_fork and call spawnp with args" do
       @service.should_receive(:remove_stale_pid_file).once
       Raad.should_receive(:jruby?).and_return(true)
-      Spoon.should_receive(:spawnp).with(Raad.ruby_path, $0, "test", "post_fork")
+      Spoon.should_receive(:spawnp).with(Raad.ruby_path, "-JXmx=256m", $0, "test", "post_fork")
+
+      Raad.ruby_options = "-JXmx=256m"
       @service.daemonize(["test", "start"], 'test')
     end
   end
@@ -90,7 +92,6 @@ describe 'UnixDaemon' do
   describe "post_fork_setup" do
 
     it 'should create a pid file' do
-
       STDIN.should_receive(:reopen)
       STDOUT.should_receive(:reopen)
       STDERR.should_receive(:reopen)

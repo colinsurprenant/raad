@@ -59,4 +59,13 @@ describe "Raad env" do
   it "should report ruby path" do
     File.exist?(Raad.ruby_path).should be_true
   end
+
+  it "should default to empty ruby_options" do
+    Raad.ruby_options.should == []
+  end
+
+  it "should set ruby_options" do
+    Raad.ruby_options = "a b"
+    Raad.ruby_options.should == ['a', 'b']
+  end
 end

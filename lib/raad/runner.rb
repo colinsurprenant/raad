@@ -178,7 +178,7 @@ module Raad
         opts.separator ""
         opts.separator "Raad common options:"
     
-        opts.on('-e', '--environment NAME', "set the execution environment (default: #{Raad.env.to_s})") { |val| Raad.env = val }
+        opts.on('-e', '--environment NAME', "set the execution environment (default: #{Raad.env.to_s})") { |v| Raad.env = v }
 
         opts.on('-l', '--log FILE', "log to file (default: in console mode: no, daemonized: <service>.log)") { |file| @parsed_options[:log_file] = file }
         opts.on('-s', '--stdout', "log to stdout (default: in console mode: true, daemonized: false)") { |v| @parsed_options[:log_stdout] = v }
@@ -191,6 +191,7 @@ module Raad
         opts.on('-r', '--redirect FILE', "redirect stdout to FILE when daemonized (default: no)") { |v| @parsed_options[:redirect] = v }
         opts.on('-n', '--name NAME', "daemon process name (default: <service>)") { |v| @parsed_options[:name] = v }
         opts.on('--timeout SECONDS', "seconds to wait before force stopping the service (default: 60)") { |v| @parsed_options[:stop_timeout] = v }
+        opts.on('--ruby opts', "daemonized ruby interpreter specifc options") { |v| Raad.ruby_options = v }
 
         opts.on('-h', '--help', 'display help message') { show_options(options_parser) }
       end
