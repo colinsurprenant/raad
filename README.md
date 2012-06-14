@@ -33,7 +33,7 @@ gem "raad", "~> 0.5.0"
 ```
 
 ## Example
-Create a class with a `start` and a `stop` method. Just by requiring 'raad', your class will be 
+- Create a class with a `start` and a `stop` method. Just by requiring 'raad', your class will be 
 wrapped by Raad and become **daemonizable**.
 
 ``` ruby
@@ -54,12 +54,12 @@ class SimpleDaemon
   end
 end
 ```
- - run it in console mode, `^C` will stop it, calling the stop method
+- run it in console mode, `^C` will stop it, calling the stop method
 
 ``` sh
 $ ruby simple_daemon.rb start
 ```
- - run it daemonized, by default `./simple_daemon.log` and `./simple_daemon.pid` will be created
+- run it daemonized, by default `./simple_daemon.log` and `./simple_daemon.pid` will be created
 
 ``` sh
 $ ruby simple_daemon.rb -d start
@@ -70,6 +70,9 @@ $ ruby simple_daemon.rb -d start
 ``` sh
 $ ruby simple_daemon.rb stop
 ```
+---
+
+- [This gist](https://gist.github.com/2920012) provides a skelton Raad service for a [Sinatra](http://www.sinatrarb.com/) + [Puma](https://github.com/puma/puma) server. 
 
 ## Documentation
 
@@ -114,7 +117,7 @@ In **daemon mode**, Raad logging for level `:info` and up will be output in `you
 To toggle output of all logging levels simply use the verbose `-v` parameter.
 
 ### Supported rubies and environments
-Raad has been tested on MRI 1.8.7, MRI 1.9.2, REE 1.8.7, JRuby 1.6.4 under OSX 10.6.8 and Linux Ubuntu 10.04
+Raad has been tested on MRI 1.8.7, MRI 1.9.x REE 1.8.7, JRuby 1.6.x under OSX 10.6.8 and Linux Ubuntu 10.04
 
 
 ### Command line options
@@ -250,8 +253,8 @@ Also, specs and validations can be run in **all currently tested Ruby environeme
 
 - ruby-1.8.7
 - ree-1.8.7
-- ruby-1.9.2
-- jruby-1.6.4
+- ruby-1.9.3
+- jruby-1.6.7
 
 In each of these rubies, the gemset @raad containing `log4r ~> 1.1.9`, `rake ~> 0.9.2` and `rspec ~> 2.6.0` must be created.
 
@@ -279,7 +282,7 @@ $ rake validations
 - For testings, the rspec (~> 2.6.0), rake (~> 0.9.2) gems and [RVM][rvm] are required.
 
 ## Author
-Colin Surprenant, [@colinsurprenant][twitter], [colin.surprenant@needium.com][needium], [colin.surprenant@gmail.com][gmail], [http://github.com/colinsurprenant][github]
+Colin Surprenant, [@colinsurprenant][twitter], [http://github.com/colinsurprenant][github], colin.surprenant@needium.com, colin.surprenant@gmail.com
 
 ## Acknowledgements
 Thanks to the Thin ([https://github.com/macournoyer/thin][thin]), Goliath ([https://github.com/postrank-labs/goliath][goliath]), Sinatra ([https://github.com/bmizerany/sinatra][sinatra]) and Spoon ([https://github.com/headius/spoon][spoon]) projects for providing inspiration and/or code!
@@ -287,8 +290,6 @@ Thanks to the Thin ([https://github.com/macournoyer/thin][thin]), Goliath ([http
 ## License
 Raad is distributed under the Apache License, Version 2.0. See the LICENSE.md file.
 
-[needium]: colin.surprenant@needium.com
-[gmail]: colin.surprenant@gmail.com
 [twitter]: http://twitter.com/colinsurprenant
 [github]: http://github.com/colinsurprenant
 [thin]: https://github.com/macournoyer/thin
