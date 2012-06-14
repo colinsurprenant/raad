@@ -79,6 +79,7 @@ describe 'UnixDaemon' do
 
       Raad.ruby_options = "-JXmx=256m"
       @service.daemonize(["test", "start"], 'test')
+      Raad.ruby_options = ""
     end
   end
 
