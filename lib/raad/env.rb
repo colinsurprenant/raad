@@ -67,7 +67,7 @@ module Raad
   #
   # @return [String] absolute path of current interpreter
   def ruby_path
-    File.join(Config::CONFIG["bindir"], Config::CONFIG["RUBY_INSTALL_NAME"] + Config::CONFIG["EXEEXT"])
+    File.join(RbConfig::CONFIG["bindir"], RbConfig::CONFIG["RUBY_INSTALL_NAME"] + RbConfig::CONFIG["EXEEXT"])
   end
 
   # ruby interpreter command line options
