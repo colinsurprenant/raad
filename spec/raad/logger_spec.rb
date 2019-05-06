@@ -3,6 +3,6 @@ require 'raad/logger'
 
 describe Raad::Logger do
   it "should work" do
-    true.should be_true
+    expect(true).to be_truthy
   end
 end

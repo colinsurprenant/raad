@@ -34,17 +34,17 @@ describe 'UnixDaemon' do
   describe "non jruby daemonize" do
 
     it 'should create a pid file' do
-      @service.should_receive(:remove_stale_pid_file).once
+      expect(@service).to receive(:remove_stale_pid_file).once
       @service.daemonize([], 'test') do
         Thread.new{Thread.stop}.join(5)
       end
      
-      Timeout.timeout(5) do
+      expect(Timeout.timeout(5) do
         while !File.exist?(@service.pid_file); sleep(0.1); end
         true
-      end.should == true
+      end).to be_truthy
 
-      (pid = @service.pid).should > 0
+      expect(pid = @service.pid).to be_gt(0)
       Process.kill(:TERM, pid)
     end
 
@@ -55,16 +55,16 @@ describe 'UnixDaemon' do
         STDOUT.puts("STDOUT.puts"); STDOUT.flush
       end
 
-      Timeout.timeout(5) do
+      expect(Timeout.timeout(5) do
         while !File.exist?(@l); sleep(0.1); end
         true
-      end.should == true
+      end).to be_truthy
 
       f = File.new(@l, "r")
-      Timeout.timeout(5) do
+      expect(Timeout.timeout(5) do
         while (l = f.readlines) != ["puts\n", "STDERR.puts\n", "STDOUT.puts\n"]; sleep(0.1); f.rewind; end
         true
-      end.should == true
+      end).to be_truthy
     end
   end unless Raad.jruby?
 
@@ -73,9 +73,9 @@ describe 'UnixDaemon' do
     # we don't have to use jruby for this test, Spoon is mocked when not jruby.
 
     it "should swap start for post_fork and call spawnp with args" do
-      @service.should_receive(:remove_stale_pid_file).once
-      Raad.should_receive(:jruby?).and_return(true)
-      Spoon.should_receive(:spawnp).with(Raad.ruby_path, "-JXmx=256m", $0, "test", "post_fork")
+      expect(@service).to receive(:remove_stale_pid_file).once
+      expect(Raad).to receive(:jruby?).and_return(true)
+      expect(Spoon).to receive(:spawnp).with(Raad.ruby_path, "-JXmx=256m", $0, "test", "post_fork")
 
       Raad.ruby_options = "-JXmx=256m"
       @service.daemonize(["test", "start"], 'test')
@@ -86,27 +86,27 @@ describe 'UnixDaemon' do
   describe "jruby daemonize (only in jruby)" do
 
     it "should daemonize" do
-      false.should == false
+      expect(false).to be_falsy
     end
   end if Raad.jruby?
 
   describe "post_fork_setup" do
 
     it 'should create a pid file' do
-      STDIN.should_receive(:reopen)
-      STDOUT.should_receive(:reopen)
-      STDERR.should_receive(:reopen)
+      expect(STDIN).to receive(:reopen)
+      expect(STDOUT).to receive(:reopen)
+      expect(STDERR).to receive(:reopen)
       @service.post_fork_setup('test', nil)
-      File.exist?(@service.pid_file).should be_true
-      @service.pid.should == Process.pid
+      expect(File.exist?(@service.pid_file)).to be_truthy
+      expect(@service.pid).to eq(Process.pid)
     end
 
     it 'should redirect stdio to a log file' do
       @service = TestService.new(@p)
 
-      STDIN.should_receive(:reopen).with("/dev/null")
-      STDOUT.should_receive(:reopen).with(@l, 'a')
-      STDERR.should_receive(:reopen).with(STDOUT)
+      expect(STDIN).to receive(:reopen).with("/dev/null")
+      expect(STDOUT).to receive(:reopen).with(@l, 'a')
+      expect(STDERR).to receive(:reopen).with(STDOUT)
 
       @service.post_fork_setup('test', @l)
     end
@@ -116,20 +116,20 @@ describe 'UnixDaemon' do
 
     it 'should write pid file' do
       @service.write_pid_file
-      File.exist?(@service.pid_file).should be_true
-      File.read(@p).to_i.should == Process.pid
+      expect(File.exist?(@service.pid_file)).to be_truthy
+      expect(File.read(@p).to_i).to eq(Process.pid)
     end
 
     it 'should read pid file' do
       @service.write_pid_file
-      @service.read_pid_file.should == Process.pid
+      expect(@service.read_pid_file).to eq(Process.pid)
     end
 
     it 'should remove pid file' do
       @service.write_pid_file
-      File.exist?(@service.pid_file).should be_true
+      expect(File.exist?(@service.pid_file)).to be_truthy
       @service.remove_pid_file
-      File.exist?(@service.pid_file).should be_false
+      expect(File.exist?(@service.pid_file)).to be_falsy
     end
   end
 
@@ -139,34 +139,34 @@ describe 'UnixDaemon' do
       @service.write_pid_file
       t = Thread.new{Thread.stop}
       Kernel.trap(:USR2) {Thread.new{t.run}}
-      Process.should_receive(:running?).once.and_return(false)
-      $stdout.should_receive(:write).twice # mute trace
-      @service.send_signal(:USR2, 5).should be_true
+      expect(Process).to receive(:running?).once.and_return(false)
+      expect($stdout).to receive(:write).once # mute trace
+      expect(@service.send_signal(:USR2, 5)).to be_truthy
       Timeout.timeout(5) {t.join}
     end
 
     it 'should force kill on Timeout::Error exception' do
       @service.write_pid_file
-      Process.should_receive(:kill).and_raise(Timeout::Error)
-      @service.should_receive(:force_kill_and_remove_pid_file).and_return(true)
-      $stdout.should_receive(:write).twice # mute trace
-      @service.send_signal(:USR2, 5).should be_true
+      expect(Process).to receive(:kill).and_raise(Timeout::Error)
+      expect(@service).to receive(:force_kill_and_remove_pid_file).and_return(true)
+      expect($stdout).to receive(:write).once # mute trace
+      expect(@service.send_signal(:USR2, 5)).to be_truthy
     end
 
     it 'should force kill on Interrupt exception' do
       @service.write_pid_file
-      Process.should_receive(:kill).and_raise(Interrupt)
-      @service.should_receive(:force_kill_and_remove_pid_file).and_return(true)
-      $stdout.should_receive(:write).twice # mute trace
-      @service.send_signal(:USR2, 5).should be_true
+      expect(Process).to receive(:kill).and_raise(Interrupt)
+      expect(@service).to receive(:force_kill_and_remove_pid_file).and_return(true)
+      expect($stdout).to receive(:write).once # mute trace
+      expect(@service.send_signal(:USR2, 5)).to be_truthy
     end
 
     it 'should remove pid file on Errno::ESRCH exception' do
       @service.write_pid_file
-      Process.should_receive(:kill).and_raise(Errno::ESRCH)
-      $stdout.should_receive(:write).exactly(4).times # mute trace
-      @service.should_receive(:remove_pid_file)
-      @service.send_signal(:USR2, 5).should be_false
+      expect(Process).to receive(:kill).and_raise(Errno::ESRCH)
+      expect($stdout).to receive(:write).exactly(2).times # mute trace
+      expect(@service).to receive(:remove_pid_file)
+      expect(@service.send_signal(:USR2, 5)).to be_falsy
     end
   end
 
@@ -185,17 +185,17 @@ describe 'UnixDaemon' do
 
     it 'should send KILL signal and terminate process' do
       @service.write_pid_file
-      Process.should_receive(:kill).with("KILL", 666).once
-      $stdout.should_receive(:write).twice # mute trace
-      @service.force_kill_and_remove_pid_file(666).should be_true
+      expect(Process).to receive(:kill).with("KILL", 666).once
+      expect($stdout).to receive(:write).once # mute trace
+      expect(@service.force_kill_and_remove_pid_file(666)).to be_truthy
     end
 
     it 'should remove pid file on no such process exception' do
       @service.write_pid_file
-      $stdout.should_receive(:write).exactly(4).times # mute trace
-      Process.should_receive(:kill).with("KILL", 666).once.and_raise(Errno::ESRCH)
-      @service.should_receive(:remove_pid_file)
-      @service.force_kill_and_remove_pid_file(666).should be_false
+      expect($stdout).to receive(:write).exactly(2).times # mute trace
+      expect(Process).to receive(:kill).with("KILL", 666).once.and_raise(Errno::ESRCH)
+      expect(@service).to receive(:remove_pid_file)
+      expect(@service.force_kill_and_remove_pid_file(666)).to be_falsy
     end
   end
 end

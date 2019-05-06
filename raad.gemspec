@@ -18,8 +18,8 @@ Gem::Specification.new do |s|
   s.require_paths     = ['lib']
 
   # Test dependencies
-  s.add_development_dependency "rspec", ["~> 2.8.0"]
+  s.add_development_dependency "rspec", ["~> 3.8.0"]
   s.add_development_dependency "rake", ["~> 0.9.2"]
 
-  s.add_runtime_dependency "log4r", ["~> 1.1.9"]
+  s.add_runtime_dependency "log4r", ["~> 1.1.10"]
 end
